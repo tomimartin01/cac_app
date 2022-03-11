@@ -82,26 +82,26 @@ class Analyzer:
             if self.record:
                 #st.checkbox("Recording", value=True)
                 out.write(frame)
-            #Dashboard
-            kpi1_text.write(f"<h1 style='text-align: center; color: red;'>{int(fps)}</h1>", unsafe_allow_html=True)
-            kpi2_text.write(f"<h1 style='text-align: center; color: red;'>{count_frames}</h1>", unsafe_allow_html=True)
-            kpi3_text.write(f"<h1 style='text-align: center; color: red;'>{width} x {height}</h1>", unsafe_allow_html=True)
             
-
             frame = cv2.resize(frame,(0,0),fx = 0.8 , fy = 0.8)
             frame = image_resize(image = frame, width = 640)
             stframe.image(frame,channels = 'BGR',use_column_width=True)
+
+            kpi1_text.write(f"<h4 style='text-align: center; color: white;'>{int(fps)}</h4>", unsafe_allow_html=True)
+            kpi2_text.write(f"<h4 style='text-align: center; color: white;'>{count_frames}</h4>", unsafe_allow_html=True)
+            kpi3_text.write(f"<h4 style='text-align: center; color: white;'>{width} x {height}</h4>", unsafe_allow_html=True)
+            
 
     st.text('Video Processed')
 
     output_video = open('output1.mp4','rb')
     out_bytes = output_video.read()
     st.video(out_bytes)
-
+        
     cap.release()
     out. release()
 
-  def frontal_analysis(self, st, stframe):
+  def frontal_analysis(self, st, stframe, keypoints_options):
 
     cap = cv2.VideoCapture(self.video)
 
@@ -138,7 +138,7 @@ class Analyzer:
     min_tracking_confidence= self.tracking_confidence,
     model_complexity = self.model)as pose:
         prevTime = 0
-
+        asimmetry_x_graph, asimmetry_y_graph = [], []
         while cap.isOpened() and self.start:
             count_frames+=1
             ret, frame = cap.read()
@@ -177,21 +177,28 @@ class Analyzer:
                         cv2.circle(frame,(xl, yl), 5, (0, 255, 0), -1)
                         cv2.circle(frame,(xr, yr), 5, (0, 255, 0), -1)
 
+                    if pair == keypoints_options[0]:
+                        asimmetry_x_graph.append(xl)
+                        asimmetry_y_graph.append(xr)
+
+
             currTime = time.time()
             fps = 1 / (currTime - prevTime)
             prevTime = currTime
             if self.record:
                 #st.checkbox("Recording", value=True)
                 out.write(frame)
-            #Dashboard
-            kpi1_text.write(f"<h1 style='text-align: center; color: red;'>{int(fps)}</h1>", unsafe_allow_html=True)
-            kpi2_text.write(f"<h1 style='text-align: center; color: red;'>{count_frames}</h1>", unsafe_allow_html=True)
-            kpi3_text.write(f"<h1 style='text-align: center; color: red;'>{width} x {height}</h1>", unsafe_allow_html=True)
-            
-
+ 
             frame = cv2.resize(frame,(0,0),fx = 0.8 , fy = 0.8)
             frame = image_resize(image = frame, width = 640)
             stframe.image(frame,channels = 'BGR',use_column_width=True)
+
+
+            kpi1_text.write(f"<h4 style='text-align: center; color: red;'>{int(fps)}</h4>", unsafe_allow_html=True)
+            kpi2_text.write(f"<h4 style='text-align: center; color: red;'>{count_frames}</h4>", unsafe_allow_html=True)
+            kpi3_text.write(f"<h4 style='text-align: center; color: red;'>{width} x {height}</h4>", unsafe_allow_html=True)
+            
+            
 
     st.text('Video Processed')
 

@@ -138,7 +138,7 @@ elif app_mode =='Simple':
     if input_mode == "Webcam":
 
         st.sidebar.markdown('---')
-        options = st.sidebar.multiselect(
+        keypoints_options = st.sidebar.multiselect(
         'Graph keypoint position',
         [key.replace("_", " ") for key, _ in keypoints.items()])
         st.sidebar.markdown('---')
@@ -156,7 +156,7 @@ elif app_mode =='Simple':
         st.sidebar.markdown('---')
         video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
         st.sidebar.markdown('---')
-        options = st.sidebar.multiselect(
+        keypoints_options = st.sidebar.multiselect(
         'Graph keypoint position',
         [key for key, _ in keypoints.items()])
         st.sidebar.markdown('---')
@@ -199,7 +199,7 @@ elif app_mode =='Frontal':
     if input_mode == "Webcam":
         
         st.sidebar.markdown('---')
-        options = st.sidebar.multiselect(
+        keypoints_options = st.sidebar.multiselect(
         'Graph keypoint position',
         [key for key, _ in keypoints_pair.items()])
         st.sidebar.markdown('---')
@@ -210,12 +210,12 @@ elif app_mode =='Frontal':
         if start:
 
             cam_analyzer = Analyzer(0, detection_confidence, tracking_confidence, model, start, record)
-            cam_analyzer.frontal_analysis(st, stframe)
+            cam_analyzer.frontal_analysis(st, stframe, keypoints_options)
 
     elif input_mode == "Video File":
         
         st.sidebar.markdown('---')
-        options = st.sidebar.multiselect(
+        keypoints_options = st.sidebar.multiselect(
         'Graph keypoint position',
         [key for key, _ in keypoints_pair.items()])
         video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
@@ -229,7 +229,7 @@ elif app_mode =='Frontal':
 
             tfflie.write(video_file_buffer.read())
             cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, start, record)
-            cam_analyzer.frontal_analysis(st, stframe)
+            cam_analyzer.frontal_analysis(st, stframe, keypoints_options)
 
 elif app_mode =='Lateral':
 
