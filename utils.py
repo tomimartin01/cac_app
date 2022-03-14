@@ -34,26 +34,31 @@ def image_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
 
 def get_asimetry_y(results, width, height,keypoints_pair,pair):
 
-    _, ylh = get_position_xy(results, width, height, pair, keypoints_pair, 'l')
-    _, yrh = get_position_xy(results, width, height, pair, keypoints_pair, 'r')
+    _, ylh = get_position_pair_xy(results, width, height, pair, keypoints_pair, 'l')
+    _, yrh = get_position_pair_xy(results, width, height, pair, keypoints_pair, 'r')
     return abs(yrh - ylh)
 
 def get_asimetry_x(results, width, height,keypoints_pair, pair):
     center_x0 = get_center_x(results, width, height,keypoints_pair)
-    xlh, _ = get_position_xy(results, width, height, pair, keypoints_pair, 'l')
-    xrh, _ = get_position_xy(results, width, height, pair, keypoints_pair, 'r')
+    xlh, _ = get_position_pair_xy(results, width, height, pair, keypoints_pair, 'l')
+    xrh, _ = get_position_pair_xy(results, width, height, pair, keypoints_pair, 'r')
     distl, distr = abs(xlh - center_x0), abs(xrh - center_x0)
 
     return abs(distl - distr)
 
 def get_center_x(results, width, height,keypoints_pair):
 
-    xls, _ = get_position_xy(results, width, height, 'SHOULDERS', keypoints_pair, 'l')
-    xrs, _ = get_position_xy(results, width, height, 'SHOULDERS', keypoints_pair, 'r')
+    xls, _ = get_position_pair_xy(results, width, height, 'SHOULDERS', keypoints_pair, 'l')
+    xrs, _ = get_position_pair_xy(results, width, height, 'SHOULDERS', keypoints_pair, 'r')
     return round((abs(xls - xrs)/2) + xrs)
 
-def get_position_xy(results, width, height, pair, keypoints_pair, side):
+def get_position_pair_xy(results, width, height, pair, keypoints_pair, side):
 
     if side == 'l':
         return (int(results.pose_landmarks.landmark[int(keypoints_pair[pair][0])].x * width), int(results.pose_landmarks.landmark[int(keypoints_pair[pair][0])].y * height))
     return (int(results.pose_landmarks.landmark[int(keypoints_pair[pair][1])].x * width), int(results.pose_landmarks.landmark[int(keypoints_pair[pair][1])].y * height))
+
+def get_position_xy(results, width, height, part, keypoints):
+
+    return (int(results.pose_landmarks.landmark[int(keypoints[part])].x * width), int(results.pose_landmarks.landmark[int(keypoints[part])].y * height))
+    

@@ -13,6 +13,8 @@ mp_pose = mp.solutions.pose
 DEMO_VIDEO = 'demo.mp4'
 DEMO_IMAGE = 'demo.jpg'
 
+
+
 st.title('CAC App')
 
 st.markdown(
@@ -107,10 +109,6 @@ elif app_mode =='Simple':
     st.set_option('deprecation.showfileUploaderEncoding', False)
     record = st.sidebar.checkbox("Record Video")
 
-    input_mode = st.sidebar.selectbox('Choose the input mode', ['None','Webcam','Video File'])
-
-    start = st.sidebar.checkbox("Start Analysis")
-
     ## if record:
     ##    st.checkbox("Recording", value=True)
     
@@ -135,50 +133,31 @@ elif app_mode =='Simple':
 
     stframe = st.empty()
     
-    if input_mode == "Webcam":
+    st.sidebar.markdown('---')
+    video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
+    st.sidebar.markdown('---')
+    keypoints_options = st.sidebar.multiselect(
+    'Graph keypoint position',
+    [key for key, _ in keypoints.items()])
+    st.sidebar.markdown('---')
+    detection_confidence = st.sidebar.slider('Min Detection Confidence', min_value =0.0,max_value = 1.0,value = 0.5)
+    tracking_confidence = st.sidebar.slider('Min Tracking Confidence', min_value = 0.0,max_value = 1.0,value = 0.5)
+    model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
+    tfflie = tempfile.NamedTemporaryFile(delete=False)
+    
+    if video_file_buffer:
 
-        st.sidebar.markdown('---')
-        keypoints_options = st.sidebar.multiselect(
-        'Graph keypoint position',
-        [key.replace("_", " ") for key, _ in keypoints.items()])
-        st.sidebar.markdown('---')
-        detection_confidence = st.sidebar.slider('Min Detection Confidence', min_value =0.0,max_value = 1.0,value = 0.5)
-        tracking_confidence = st.sidebar.slider('Min Tracking Confidence', min_value = 0.0,max_value = 1.0,value = 0.5)
-        model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
-        
-        if start:
-
-            cam_analyzer = Analyzer(0, detection_confidence, tracking_confidence, model, start, record)
-            cam_analyzer.simple_analysis(st, stframe)
-
-    elif input_mode == "Video File":
-
-        st.sidebar.markdown('---')
-        video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
-        st.sidebar.markdown('---')
-        keypoints_options = st.sidebar.multiselect(
-        'Graph keypoint position',
-        [key for key, _ in keypoints.items()])
-        st.sidebar.markdown('---')
-        detection_confidence = st.sidebar.slider('Min Detection Confidence', min_value =0.0,max_value = 1.0,value = 0.5)
-        tracking_confidence = st.sidebar.slider('Min Tracking Confidence', min_value = 0.0,max_value = 1.0,value = 0.5)
-        model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
-        tfflie = tempfile.NamedTemporaryFile(delete=False)
-        
-        if video_file_buffer and start:
-
-            tfflie.write(video_file_buffer.read())
-            cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, start, record)
-            cam_analyzer.simple_analysis(st, stframe)
+        tfflie.write(video_file_buffer.read())
+        cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, record)
+        x_graph, y_graph = cam_analyzer.simple_analysis(st, stframe, keypoints_options)
+        st.line_chart({"X": x_graph})
+        st.line_chart({"Y": y_graph})
 
 elif app_mode =='Frontal':
 
     st.set_option('deprecation.showfileUploaderEncoding', False)
     record = st.sidebar.checkbox("Record Video")
 
-    input_mode = st.sidebar.selectbox('Choose the input mode', ['None','Webcam','Video File'])
-
-    start = st.sidebar.checkbox("Start Analysis")
 
     st.markdown(
     """
@@ -194,52 +173,30 @@ elif app_mode =='Frontal':
     """,
     unsafe_allow_html=True,)
 
-    stframe = st.empty()
-    
-    if input_mode == "Webcam":
-        
-        st.sidebar.markdown('---')
-        keypoints_options = st.sidebar.multiselect(
-        'Graph keypoint position',
-        [key for key, _ in keypoints_pair.items()])
-        st.sidebar.markdown('---')
-        detection_confidence = st.sidebar.slider('Min Detection Confidence', min_value =0.0,max_value = 1.0,value = 0.5)
-        tracking_confidence = st.sidebar.slider('Min Tracking Confidence', min_value = 0.0,max_value = 1.0,value = 0.5)
-        model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
-        
-        if start:
+    stframe = st.empty() 
+    st.sidebar.markdown('---')
+    keypoints_options = st.sidebar.multiselect(
+    'Graph keypoint position',
+    [key for key, _ in keypoints_pair.items()])
+    video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
+    st.sidebar.markdown('---')
+    detection_confidence = st.sidebar.slider('Min Detection Confidence', min_value =0.0,max_value = 1.0,value = 0.5)
+    tracking_confidence = st.sidebar.slider('Min Tracking Confidence', min_value = 0.0,max_value = 1.0,value = 0.5)
+    model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
+    tfflie = tempfile.NamedTemporaryFile(delete=False)
 
-            cam_analyzer = Analyzer(0, detection_confidence, tracking_confidence, model, start, record)
-            cam_analyzer.frontal_analysis(st, stframe, keypoints_options)
-
-    elif input_mode == "Video File":
-        
-        st.sidebar.markdown('---')
-        keypoints_options = st.sidebar.multiselect(
-        'Graph keypoint position',
-        [key for key, _ in keypoints_pair.items()])
-        video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
-        st.sidebar.markdown('---')
-        detection_confidence = st.sidebar.slider('Min Detection Confidence', min_value =0.0,max_value = 1.0,value = 0.5)
-        tracking_confidence = st.sidebar.slider('Min Tracking Confidence', min_value = 0.0,max_value = 1.0,value = 0.5)
-        model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
-        tfflie = tempfile.NamedTemporaryFile(delete=False)
-        
-        if video_file_buffer and start:
-
-            tfflie.write(video_file_buffer.read())
-            cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, start, record)
-            cam_analyzer.frontal_analysis(st, stframe, keypoints_options)
+    if video_file_buffer:
+        tfflie.write(video_file_buffer.read())
+        cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, record)
+        asimmetry_x_graph,asimmetry_y_graph = cam_analyzer.frontal_analysis(st, stframe, keypoints_options)
+        st.line_chart({"Asimetry X": asimmetry_x_graph})
+        st.line_chart({"Asimetry Y": asimmetry_y_graph})
 
 elif app_mode =='Lateral':
 
     st.set_option('deprecation.showfileUploaderEncoding', False)
     record = st.sidebar.checkbox("Record Video")
 
-    input_mode = st.sidebar.selectbox('Choose the input mode', ['None','Webcam','Video File'])
-
-    start = st.sidebar.checkbox("Start Analysis")
-
     st.markdown(
     """
     <style>
@@ -255,34 +212,19 @@ elif app_mode =='Lateral':
     unsafe_allow_html=True,)
 
     stframe = st.empty()
-
-    if input_mode == "Webcam":
-        
-        st.sidebar.markdown('---')
-        minDist = st.sidebar.slider('Min Distance', min_value =0,max_value = 1000,value = 100)
-        param1 = st.sidebar.slider('Parameter 1', min_value =0,max_value = 1000,value = 100)
-        param2 = st.sidebar.slider('Parameter 2', min_value =0,max_value = 1000,value = 100)
-        minRadius = st.sidebar.slider('Min Radius', min_value =0,max_value = 1000,value = 100)
-        maxRadius = st.sidebar.slider('Max Radius', min_value =0,max_value = 1000,value = 100)
-        
-        if start:
-            cam_analyzer = Hough(0, minDist, param1, param2, minRadius, maxRadius, start, record)
-            cam_analyzer.lateral_analysis(st, stframe)
             
-
-    elif input_mode == "Video File":
+    video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
+    st.sidebar.markdown('---')
+    minDist = st.sidebar.slider('Min Distancia', min_value =0,max_value = 1000,value = 100)
+    param1 = st.sidebar.slider('Parameter 1', min_value =0,max_value = 1000,value = 100)
+    param2 = st.sidebar.slider('Parameter 2', min_value =0,max_value = 1000,value = 100)
+    minRadius = st.sidebar.slider('Min Radius', min_value =0,max_value = 1000,value = 100)
+    maxRadius = st.sidebar.slider('Min Distance', min_value =0,max_value = 1000,value = 100)
+    tfflie = tempfile.NamedTemporaryFile(delete=False)
+    
+    if video_file_buffer:
+        tfflie.write(video_file_buffer.read())
+        cam_analyzer = Hough(tfflie.name, minDist, param1, param2, minRadius, maxRadius, record)
+        cam_analyzer.lateral_analysis(st, stframe)
         
-        video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
-        st.sidebar.markdown('---')
-        minDist = st.sidebar.slider('Min Distancia', min_value =0,max_value = 1000,value = 100)
-        param1 = st.sidebar.slider('Parameter 1', min_value =0,max_value = 1000,value = 100)
-        param2 = st.sidebar.slider('Parameter 2', min_value =0,max_value = 1000,value = 100)
-        minRadius = st.sidebar.slider('Min Radius', min_value =0,max_value = 1000,value = 100)
-        maxRadius = st.sidebar.slider('Min Distance', min_value =0,max_value = 1000,value = 100)
-        tfflie = tempfile.NamedTemporaryFile(delete=False)
-        
-        if video_file_buffer and start:
-            tfflie.write(video_file_buffer.read())
-            cam_analyzer = Hough(tfflie.name, minDist, param1, param2, minRadius, maxRadius, start, record)
-            cam_analyzer.lateral_analysis(st, stframe)
 

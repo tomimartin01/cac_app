@@ -5,14 +5,14 @@ from utils import image_resize
 
 class Hough:
 
-  def __init__(self, video, minDist, param1, param2, minRadius, maxRadius, start, record):
+  def __init__(self, video, minDist, param1, param2, minRadius, maxRadius, running, record):
     self.video = video
     self.minDist = minDist
     self.param1 = param1
     self.param2 = param2
     self.minRadius = minRadius
     self.maxRadius = maxRadius
-    self.start = start
+    self.running = running
     self.record = record
 
   def lateral_analysis(self, st, stframe):
@@ -47,7 +47,7 @@ class Hough:
 
     st.markdown("<hr/>", unsafe_allow_html=True)
 
-    while cap.isOpened() and self.start:
+    while cap.isOpened() and self.running:
         count_frames+=1
         ret, frame = cap.read()
         if not ret:
