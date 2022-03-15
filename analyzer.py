@@ -34,21 +34,6 @@ class Analyzer:
     count_frames= 0
     drawing_spec = self.mp_drawing.DrawingSpec(thickness=2, circle_radius=2)
 
-    # kpi1, kpi2, kpi3 = st.columns(3)
-
-    # with kpi1:
-    #     st.markdown("**FrameRate**")
-    #     kpi1_text = st.markdown("0")
-
-    # with kpi2:
-    #     st.markdown("**Count Frames**")
-    #     kpi3_text = st.markdown("0")
-
-    # with kpi3:
-    #     st.markdown("**Image Size**")
-    #     kpi2_text = st.markdown("0 x 0")
-
-    st.markdown("<hr/>", unsafe_allow_html=True)
 
     with self.mp_pose.Pose(
     min_detection_confidence= self.detection_confidence,
@@ -81,14 +66,10 @@ class Analyzer:
             for keypoint in keypoints:
                 x, y = get_position_xy(results, width, height, keypoint, keypoints)
 
-                if keypoints_options: 
-                    if keypoint == keypoints_options[0]:
-                        x_graph.append(x)
-                        y_graph.append(y)
-                else:
-                    if keypoint == "LEFT_HIP":
-                        x_graph.append(x)
-                        y_graph.append(y)
+                if keypoint == keypoints_options:
+                    x_graph.append(x)
+                    y_graph.append(y)
+
             
             currTime = time.time()
             fps = 1 / (currTime - prevTime)
@@ -169,14 +150,11 @@ class Analyzer:
                         cv2.circle(frame,(xl, yl), 5, (0, 255, 0), -1)
                         cv2.circle(frame,(xr, yr), 5, (0, 255, 0), -1)
 
-                    if keypoints_options: 
-                        if pair == keypoints_options[0]:
-                            asimmetry_x_graph.append(asimmetry_x)
-                            asimmetry_y_graph.append(asimmetry_y)
-                    else:
-                        if pair == "HIP":
-                            asimmetry_x_graph.append(asimmetry_x)
-                            asimmetry_y_graph.append(asimmetry_y)
+
+                    if pair == keypoints_options:
+                        asimmetry_x_graph.append(asimmetry_x)
+                        asimmetry_y_graph.append(asimmetry_y)
+
 
             currTime = time.time()
             fps += 1 / (currTime - prevTime)
