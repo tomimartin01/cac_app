@@ -29,36 +29,52 @@ class Hough:
     fps = 0
     count_frames= 0
     prevTime = 0
+    multiple_detection =False
+    x_graph, y_graph = [], []
 
-
+    blank_frame = np.full((height, width, 3) , (35, 35, 35), np.uint8)
     while cap.isOpened():
-        count_frames+=1
-        ret, frame = cap.read()
-        if not ret:
-            break
+      count_frames+=1
+      ret, frame = cap.read()
+      if not ret:
+        break
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.medianBlur(gray, 25) #cv2.bilateralFilter(gray,10,50,50)
-        # docstring of HoughCircles: HoughCircles(image, method, dp, minDist[, circles[, param1[, param2[, minRadius[, maxRadius]]]]]) -> circles
-        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, 1, self.minDist, param1=self.param1, param2=self.param2, minRadius=self.minRadius, maxRadius=self.maxRadius)
-        if circles is not None:
-            circles = np.uint16(np.around(circles))
-            for i in circles[0,:]:
-                cv2.circle(frame, (i[0], i[1]), i[2], (0, 255, 0), 2)
-                # draw the center of the circle
-                cv2.circle(frame,(i[0],i[1]),2,(0,0,255),3)
-        
+      gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+      blurred = cv2.medianBlur(gray, 25) #cv2.bilateralFilter(gray,10,50,50)
+      # docstring of HoughCircles: HoughCircles(image, method, dp, minDist[, circles[, param1[, param2[, minRadius[, maxRadius]]]]]) -> circles
+      circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, 1, self.minDist, param1=self.param1, param2=self.param2, minRadius=self.minRadius, maxRadius=self.maxRadius)
+      
+      if circles is not None:
+        if len(circles[0,:]) > 1:
+          multiple_detection = True
+        circles = np.uint16(np.around(circles))
+        # draw the circle
+        cv2.circle(frame, (circles[0,:][0][0], circles[0,:][0][1]), circles[0,:][0][2], (0, 0, 255), 2)
+        # draw the center of the circle
+        cv2.circle(frame,(circles[0,:][0][0],circles[0,:][0][1]),2,(0, 255, 0),3)
+        x_graph.append(circles[0,:][0][0])
+        y_graph.append(circles[0,:][0][1])
+
+        for i in range(0,len(x_graph)):
+          cv2.circle(frame,(x_graph[i],y_graph[i]),7,(0, 255, 0),-1)
+          cv2.circle(blank_frame,(x_graph[i],y_graph[i]),7,(0, 255, 0),-1)
+
         currTime = time.time()
         fps = 1 / (currTime - prevTime)
         prevTime = currTime
         if self.record:
-            out.write(frame)
+          out.write(frame)
 
-        frame = cv2.resize(frame,(0,0),fx = 0.8 , fy = 0.8)
-        frame = image_resize(image = frame, width = 640)
-        stframe.image(frame,channels = 'BGR',use_column_width=True)
+        #frame = cv2.resize(frame,(0,0),fx = 0.8 , fy = 0.8)
+        #frame = image_resize(image = frame, width = 640)
+        stframe.image(frame,channels = 'BGR',use_column_width='auto')
 
 
 
     cap.release()
     out. release()
+
+    # blank_frame = cv2.resize(blank_frame,(0,0),fx = 0.8 , fy = 0.8)
+    # blank_frame = image_resize(image = blank_frame, width = 640)
+
+    return x_graph, y_graph, multiple_detection, blank_frame

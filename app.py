@@ -5,6 +5,9 @@ import tempfile
 from analyzer import Analyzer
 from hough import Hough
 from const import keypoints, keypoints_pair
+import altair as alt
+import pandas as pd
+import numpy as np
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -175,9 +178,7 @@ elif app_mode =='Frontal Body Analysis':
     </style>
     """,
     unsafe_allow_html=True,)
-
     stframe = st.empty() 
-    stframe = st.empty()
     stwait = st.empty()
     stgraphtitle= st.empty()
     stgraphxlabel= st.empty()
@@ -235,6 +236,9 @@ elif app_mode =='Bar Analysis':
 
     stframe = st.empty()
     stwait = st.empty()
+    stgraphtitle= st.empty()
+    stgraphlabel= st.empty()
+    stgraph = st.empty()
 
     st.sidebar.markdown('---')  
     st.sidebar.markdown('Video options')     
@@ -243,11 +247,11 @@ elif app_mode =='Bar Analysis':
 
     st.sidebar.markdown('---')
     st.sidebar.markdown('Detection Parameters')
-    minDist = st.sidebar.slider('Min Distancia', min_value =0,max_value = 1000,value = 100)
-    param1 = st.sidebar.slider('Parameter 1', min_value =0,max_value = 1000,value = 100)
-    param2 = st.sidebar.slider('Parameter 2', min_value =0,max_value = 1000,value = 100)
-    minRadius = st.sidebar.slider('Min Radius', min_value =0,max_value = 1000,value = 100)
-    maxRadius = st.sidebar.slider('Min Distance', min_value =0,max_value = 1000,value = 100)
+    minDist = st.sidebar.slider('Min Distance', min_value =0,max_value = 1000,value = 20)
+    param1 = st.sidebar.slider('Parameter 1', min_value =0,max_value = 1000,value = 50)
+    param2 = st.sidebar.slider('Parameter 2', min_value =0,max_value = 1000,value = 48)
+    minRadius = st.sidebar.slider('Min Radius', min_value =0,max_value = 1000,value = 51)
+    maxRadius = st.sidebar.slider('Max Radius', min_value =0,max_value = 1000,value = 87)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
     
     if video_file_buffer:
@@ -255,8 +259,24 @@ elif app_mode =='Bar Analysis':
         stwait.empty()
         tfflie.write(video_file_buffer.read())
         cam_analyzer = Hough(tfflie.name, minDist, param1, param2, minRadius, maxRadius, record)
-        cam_analyzer.bar_analysis(st, stframe)
-    
+        x_graph, y_graph, multiple_detection, blank_frame = cam_analyzer.bar_analysis(st, stframe)
+
+        stframe.empty()
+        stframe.image(blank_frame,channels = 'RGB',use_column_width='auto')
+
+        ## GRaph xy
+        #d = {'X': x_graph, 'Y': y_graph}
+        # df = pd.DataFrame(data=d)
+        # fig_rec = alt.Chart(df).mark_line().encode(
+        # alt.X("X"),
+        # alt.Y("Y")
+        # ).properties(
+        #     width=900,
+        #     height=500
+        # )
+        # st.altair_chart(fig_rec)
+
+      
     else:
         stwait.subheader('Please load a video file...')
         

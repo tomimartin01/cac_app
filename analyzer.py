@@ -114,7 +114,6 @@ class Analyzer:
         asimmetry_x_graph, asimmetry_y_graph = [], []
         while cap.isOpened():
             count_frames+=1
-            print(count_frames)
             ret, frame = cap.read()
             if not ret:
                 break
