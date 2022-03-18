@@ -131,6 +131,7 @@ elif app_mode =='Simple Body Analysis':
     [key for key, _ in keypoints.items()])
     video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
     record = st.sidebar.checkbox("Record Video")
+    download = st.download_button('Download Zip', f, file_name='archive.zip')
 
     st.sidebar.markdown('---')
     st.sidebar.markdown('Detection Parameters')

@@ -32,8 +32,8 @@ keypoints_pair = {
     "FOOT_INDEX" : ["31", "32"],
     }
 
-    # video procesado para descargar
-    # poder exportar datos en csv
-    # cambiar el post analisis en bar analysis
-    # ver si puedo agregar labels a x,Y
-    # revisar escalamiento de la imagenes
+    # [] video procesado para descargar
+    # [] poder exportar datos en csv
+    # [] cambiar el post analisis en bar analysis
+    # [X] ver si puedo agregar labels a x,Y
+    # [] revisar escalamiento de la imagenes
