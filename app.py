@@ -114,6 +114,7 @@ elif app_mode =='Simple Body Analysis':
     """,
     unsafe_allow_html=True,)
 
+    ## Create dinamyc components, it allows to hide them 
     stframe = st.empty()
     stwait = st.empty()
     stgraphtitle= st.empty()
@@ -121,7 +122,8 @@ elif app_mode =='Simple Body Analysis':
     stgraphx = st.empty()
     stgraphylabel= st.empty()
     stgraphy = st.empty()
-    
+
+    ## set simple analysis options and parameters
     st.sidebar.markdown('---')
     st.sidebar.markdown('Video options') 
     keypoints_options = st.sidebar.selectbox(
@@ -137,8 +139,10 @@ elif app_mode =='Simple Body Analysis':
     model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
     
+    ## Only process if there is a video loaded
     if video_file_buffer:
-
+        
+        ## Hide componets, they are shown after the processing
         stwait.empty()
         stgraphtitle.empty()
         stgraphx.empty()
@@ -147,16 +151,40 @@ elif app_mode =='Simple Body Analysis':
         stgraphy.empty()
 
         tfflie.write(video_file_buffer.read())
+        ## create an instance of analyzer and execute frontal analysis
         cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, record)
         x_graph, y_graph = cam_analyzer.simple_analysis(st, stframe, keypoints_options)
-
+        
+        ## Remove image component 
+        stframe.empty()
         stgraphtitle.subheader(f"{keypoints_options.replace('_',' ')} keypoint")
 
-        stgraphxlabel.markdown('X Graph')
-        stgraphx.line_chart({"X": x_graph})
-        stgraphylabel.markdown('Y Graph')
-        stgraphy.line_chart({"Y": y_graph})
-    
+        stgraphxlabel.markdown('X-axis Graph')
+        #stgraphx.line_chart({"X": x_graph})
+        d = {'Frames': list(range(0,len(x_graph))), 'Pixels': x_graph}
+        df = pd.DataFrame(data=d)
+        fig_rec = alt.Chart(df).mark_line().encode(
+        alt.X("Frames"),
+        alt.Y("Pixels")
+        ).properties(
+            width=700,
+            height=500
+        )
+        stgraphx.altair_chart(fig_rec)
+
+        stgraphylabel.markdown('Y-axis Graph')
+        #stgraphy.line_chart({"Y": y_graph})
+        d = {'Frames': list(range(0,len(y_graph))), 'Pixels': y_graph}
+        df = pd.DataFrame(data=d)
+        fig_rec = alt.Chart(df).mark_line().encode(
+        alt.X("Frames"),
+        alt.Y("Pixels")
+        ).properties(
+            width=700,
+            height=500
+        )
+        stgraphy.altair_chart(fig_rec)
+
     else:
         stwait.subheader('Please load a video file...')
 
@@ -178,6 +206,7 @@ elif app_mode =='Frontal Body Analysis':
     </style>
     """,
     unsafe_allow_html=True,)
+
     stframe = st.empty() 
     stwait = st.empty()
     stgraphtitle= st.empty()
@@ -185,7 +214,7 @@ elif app_mode =='Frontal Body Analysis':
     stgraphx = st.empty()
     stgraphylabel= st.empty()
     stgraphy = st.empty()
-
+    
     st.sidebar.markdown('---')
     st.sidebar.markdown('Video options') 
     keypoints_options = st.sidebar.selectbox(
@@ -202,18 +231,48 @@ elif app_mode =='Frontal Body Analysis':
     tfflie = tempfile.NamedTemporaryFile(delete=False)
 
     if video_file_buffer:
+
+        stwait.empty()
+        stgraphtitle.empty()
+        stgraphx.empty()
+        stgraphxlabel.empty()
+        stgraphylabel.empty()
+        stgraphy.empty()
+
         tfflie.write(video_file_buffer.read())
         cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, record)
         asimmetry_x_graph,asimmetry_y_graph = cam_analyzer.frontal_analysis(st, stframe, keypoints_options)
+        stframe.empty()
 
         stgraphtitle.subheader(f"{keypoints_options.replace('_',' ')} keypoint")
         stgraphxlabel.markdown('Asimmetry X Graph')
-        stgraphx.line_chart({"Asimetry X": asimmetry_x_graph})
+        # stgraphx.line_chart({"Asimetry X": asimmetry_x_graph})
+        d = {'Frames': list(range(0,len(asimmetry_x_graph))), 'Pixels': asimmetry_x_graph}
+        df = pd.DataFrame(data=d)
+        fig_rec = alt.Chart(df).mark_line().encode(
+        alt.X("Frames"),
+        alt.Y("Pixels")
+        ).properties(
+            width=700,
+            height=500
+        )
+        stgraphx.altair_chart(fig_rec)
+
         stgraphylabel.markdown('Asimmetry Y Graph')
-        stgraphy.line_chart({"Asimmetry Y": asimmetry_y_graph})
-    
+        # stgraphy.line_chart({"Asimmetry Y": asimmetry_y_graph})
+        d = {'Frames': list(range(0,len(asimmetry_y_graph))), 'Pixels': asimmetry_y_graph}
+        df = pd.DataFrame(data=d)
+        fig_rec = alt.Chart(df).mark_line().encode(
+        alt.X("Frames"),
+        alt.Y("Pixels")
+        ).properties(
+            width=700,
+            height=500
+        )
+        stgraphy.altair_chart(fig_rec)
+        
     else:
-        st.subheader('Please load a video file...')
+        stwait.subheader('Please load a video file...')
 
 elif app_mode =='Bar Analysis':
 
@@ -261,6 +320,7 @@ elif app_mode =='Bar Analysis':
         cam_analyzer = Hough(tfflie.name, minDist, param1, param2, minRadius, maxRadius, record)
         x_graph, y_graph, multiple_detection, blank_frame = cam_analyzer.bar_analysis(st, stframe)
 
+        ## Hide image component in post processing
         stframe.empty()
         stframe.image(blank_frame,channels = 'RGB',use_column_width='auto')
 

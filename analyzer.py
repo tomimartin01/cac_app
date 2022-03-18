@@ -44,7 +44,6 @@ class Analyzer:
 
         while cap.isOpened():
             count_frames+=1
-            print(count_frames)
             ret, frame = cap.read()
             if not ret:
                 break
@@ -55,7 +54,7 @@ class Analyzer:
             frame.flags.writeable = True
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-            if results:
+            if results.pose_landmarks:
                 self.mp_drawing.draw_landmarks(
                 image = frame,
                 landmark_list=results.pose_landmarks,
@@ -63,12 +62,12 @@ class Analyzer:
                 landmark_drawing_spec=drawing_spec,
                 connection_drawing_spec=drawing_spec)
 
-            for keypoint in keypoints:
-                x, y = get_position_xy(results, width, height, keypoint, keypoints)
+                for keypoint in keypoints:
+                    x, y = get_position_xy(results, width, height, keypoint, keypoints)
 
-                if keypoint == keypoints_options:
-                    x_graph.append(x)
-                    y_graph.append(y)
+                    if keypoint == keypoints_options:
+                        x_graph.append(x)
+                        y_graph.append(y)
 
             
             currTime = time.time()
@@ -83,7 +82,6 @@ class Analyzer:
             stframe.image(frame,channels = 'BGR',use_column_width=True)
 
 
-    stframe.empty()
     cap.release()
     out. release()
 
@@ -112,6 +110,7 @@ class Analyzer:
     model_complexity = self.model)as pose:
         prevTime = 0
         asimmetry_x_graph, asimmetry_y_graph = [], []
+        asimmetry_threshold = False
         while cap.isOpened():
             count_frames+=1
             ret, frame = cap.read()
@@ -123,17 +122,19 @@ class Analyzer:
             frame.flags.writeable = True
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-            if results:
+            if results.pose_landmarks:
                 self.mp_drawing.draw_landmarks(
                 image = frame,
                 landmark_list=results.pose_landmarks,
                 connections= self.mp_pose.POSE_CONNECTIONS,
                 landmark_drawing_spec=drawing_spec,
                 connection_drawing_spec=drawing_spec)
-                
-                if count_frames == 1:
+
+                if not asimmetry_threshold:
                     asimmetry_y0 = get_asimetry_y(results, width, height,keypoints_pair, 'HEELS')
                     asimmetry_x0 = get_asimetry_x(results, width, height,keypoints_pair, 'HEELS')
+                    asimmetry_threshold = True
+
                 for pair in keypoints_pair:
 
                     xl, yl = get_position_pair_xy(results, width, height, pair, keypoints_pair, 'l')
@@ -166,7 +167,6 @@ class Analyzer:
             frame = image_resize(image = frame, width = 640)
             stframe.image(frame,channels = 'BGR',use_column_width=True)
             
-    stframe.empty()
     cap.release()
     out. release()
 

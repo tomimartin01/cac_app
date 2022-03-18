@@ -1,3 +1,7 @@
+import csv
+from tkinter import Y
+
+
 keypoints = {
     "LEFT_SHOULDER" : "11",
     "RIGHT_SHOULDER" : "12",
@@ -27,3 +31,9 @@ keypoints_pair = {
     "HEELS" : ["29", "30"],
     "FOOT_INDEX" : ["31", "32"],
     }
+
+    # video procesado para descargar
+    # poder exportar datos en csv
+    # cambiar el post analisis en bar analysis
+    # ver si puedo agregar labels a x,Y
+    # revisar escalamiento de la imagenes
