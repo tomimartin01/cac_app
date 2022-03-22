@@ -21,12 +21,12 @@ class Hough:
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps_input = int(cap.get(cv2.CAP_PROP_FPS))
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     #codec = cv2.VideoWriter_fourcc(*FLAGS.output_format)
     codec = cv2.VideoWriter_fourcc('V','P','0','9')
     out = cv2.VideoWriter('output1.mp4', codec, fps_input, (width, height))
 
-    fps = 0
     count_frames= 0
     prevTime = 0
     multiple_detection =False
@@ -50,6 +50,8 @@ class Hough:
         circles = np.uint16(np.around(circles))
         # draw the circle
         cv2.circle(frame, (circles[0,:][0][0], circles[0,:][0][1]), circles[0,:][0][2], (0, 0, 255), 2)
+        # draw the frame number
+        cv2.putText(frame, f'{count_frames} of {total_frames}', (width - 250, height - 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_4)
         # draw the center of the circle
         cv2.circle(frame,(circles[0,:][0][0],circles[0,:][0][1]),2,(0, 255, 0),3)
         x_graph.append(circles[0,:][0][0])

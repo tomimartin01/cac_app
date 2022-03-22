@@ -27,7 +27,7 @@ class Analyzer:
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     #codec = cv2.VideoWriter_fourcc(*FLAGS.output_format)
-    codec = cv2.VideoWriter_fourcc('V','P','0','9')
+    codec = cv2.VideoWriter_fourcc('H','2','6','4')
     out = cv2.VideoWriter('output1.mp4', codec, fps_input, (width, height))
 
     fps = 0
@@ -54,6 +54,8 @@ class Analyzer:
             frame.flags.writeable = True
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
+            # draw the frame number
+            cv2.putText(frame, f'{count_frames} of {total_frames}', (width - 250, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_4)
             if results.pose_landmarks:
                 self.mp_drawing.draw_landmarks(
                 image = frame,
@@ -122,6 +124,9 @@ class Analyzer:
             frame.flags.writeable = True
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
+            # draw the frame number
+            cv2.putText(frame, f'{count_frames} of {total_frames}', (width - 250, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_4)
+            
             if results.pose_landmarks:
                 self.mp_drawing.draw_landmarks(
                 image = frame,

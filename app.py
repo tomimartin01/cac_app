@@ -9,6 +9,8 @@ import altair as alt
 import pandas as pd
 import numpy as np
 
+from utils import write_csv
+
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
@@ -116,7 +118,7 @@ elif app_mode =='Simple Body Analysis':
 
     ## Create dinamyc components, it allows to hide them 
     stframe = st.empty()
-    stwait = st.empty()
+    stsubtitle = st.empty()
     stgraphtitle= st.empty()
     stgraphxlabel= st.empty()
     stgraphx = st.empty()
@@ -130,8 +132,8 @@ elif app_mode =='Simple Body Analysis':
     'Graph keypoint position',
     [key for key, _ in keypoints.items()])
     video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
-    record = st.sidebar.checkbox("Record Video")
-    download = st.download_button('Download Zip', f, file_name='archive.zip')
+    write_video = st.sidebar.checkbox("Write Video")
+
 
     st.sidebar.markdown('---')
     st.sidebar.markdown('Detection Parameters')
@@ -140,11 +142,18 @@ elif app_mode =='Simple Body Analysis':
     model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
     
+    st.sidebar.markdown("---")
+    st.sidebar.markdown('Export options') 
+    with open('output1.mp4', 'rb') as fvideo:
+        st.sidebar.download_button('Video as MP4', fvideo, file_name='output1.mp4')
+    with open('data.csv') as fcsv:
+        st.sidebar.download_button('Data as CSV', fcsv)
+    
     ## Only process if there is a video loaded
     if video_file_buffer:
         
         ## Hide componets, they are shown after the processing
-        stwait.empty()
+        stsubtitle.empty()
         stgraphtitle.empty()
         stgraphx.empty()
         stgraphxlabel.empty()
@@ -153,9 +162,10 @@ elif app_mode =='Simple Body Analysis':
 
         tfflie.write(video_file_buffer.read())
         ## create an instance of analyzer and execute frontal analysis
-        cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, record)
+        cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, write_video)
         x_graph, y_graph = cam_analyzer.simple_analysis(st, stframe, keypoints_options)
-        
+        ## write x,y on csv file
+        write_csv(x_graph, y_graph)
         ## Remove image component 
         stframe.empty()
         stgraphtitle.subheader(f"{keypoints_options.replace('_',' ')} keypoint")
@@ -186,8 +196,14 @@ elif app_mode =='Simple Body Analysis':
         )
         stgraphy.altair_chart(fig_rec)
 
+        if write_video:
+            with open('output1.mp4', 'rb') as fvideo:
+                video_bytes = fvideo.read()
+                stframe.video(video_bytes)
+        else:
+            stframe.empty()
     else:
-        stwait.subheader('Please load a video file...')
+        stsubtitle.subheader('No loaded video. \n Please load a video file.')
 
 elif app_mode =='Frontal Body Analysis':
 
@@ -209,7 +225,7 @@ elif app_mode =='Frontal Body Analysis':
     unsafe_allow_html=True,)
 
     stframe = st.empty() 
-    stwait = st.empty()
+    stsubtitle = st.empty()
     stgraphtitle= st.empty()
     stgraphxlabel= st.empty()
     stgraphx = st.empty()
@@ -222,7 +238,7 @@ elif app_mode =='Frontal Body Analysis':
     'Graph keypoint position',
     [key for key, _ in keypoints_pair.items()])
     video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
-    record = st.sidebar.checkbox("Record Video")
+    write_video = st.sidebar.checkbox("Write Video")
 
     st.sidebar.markdown('---')
     st.sidebar.markdown('Detection Parameters')
@@ -230,10 +246,17 @@ elif app_mode =='Frontal Body Analysis':
     tracking_confidence = st.sidebar.slider('Min Tracking Confidence', min_value = 0.0,max_value = 1.0,value = 0.5)
     model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
+    
+    st.sidebar.markdown("---")
+    st.sidebar.markdown('Export options') 
+    with open('output1.mp4', 'rb') as fvideo:
+        st.sidebar.download_button('Video as MP4', fvideo, file_name='output1.mp4')
+    with open('data.csv') as fcsv:
+        st.sidebar.download_button('Data as CSV', fcsv)
 
     if video_file_buffer:
 
-        stwait.empty()
+        stsubtitle.empty()
         stgraphtitle.empty()
         stgraphx.empty()
         stgraphxlabel.empty()
@@ -241,9 +264,10 @@ elif app_mode =='Frontal Body Analysis':
         stgraphy.empty()
 
         tfflie.write(video_file_buffer.read())
-        cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, record)
+        cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, write_video)
         asimmetry_x_graph,asimmetry_y_graph = cam_analyzer.frontal_analysis(st, stframe, keypoints_options)
-        stframe.empty()
+
+        write_csv(asimmetry_x_graph, asimmetry_y_graph)
 
         stgraphtitle.subheader(f"{keypoints_options.replace('_',' ')} keypoint")
         stgraphxlabel.markdown('Asimmetry X Graph')
@@ -272,8 +296,16 @@ elif app_mode =='Frontal Body Analysis':
         )
         stgraphy.altair_chart(fig_rec)
         
+        if write_video:
+            with open('output1.mp4', 'rb') as fvideo:
+                video_bytes = fvideo.read()
+                stframe.video(video_bytes)
+        else:
+            stframe.empty()
+
+
     else:
-        stwait.subheader('Please load a video file...')
+        stsubtitle.subheader('No loaded video. \n Please load a video file.')
 
 elif app_mode =='Bar Analysis':
 
@@ -295,15 +327,13 @@ elif app_mode =='Bar Analysis':
     unsafe_allow_html=True,)
 
     stframe = st.empty()
-    stwait = st.empty()
-    stgraphtitle= st.empty()
-    stgraphlabel= st.empty()
-    stgraph = st.empty()
+    stsubtitle = st.empty()
+    sttitle= st.empty()
 
     st.sidebar.markdown('---')  
     st.sidebar.markdown('Video options')     
     video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
-    record = st.sidebar.checkbox("Record Video")
+    write_video = st.sidebar.checkbox("Write Video")
 
     st.sidebar.markdown('---')
     st.sidebar.markdown('Detection Parameters')
@@ -314,31 +344,28 @@ elif app_mode =='Bar Analysis':
     maxRadius = st.sidebar.slider('Max Radius', min_value =0,max_value = 1000,value = 87)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
     
+    st.sidebar.markdown("---")
+    st.sidebar.markdown('Export options') 
+    with open('output1.mp4', 'rb') as fvideo:
+        st.sidebar.download_button('Video as MP4', fvideo, file_name='output1.mp4')
+    with open('data.csv') as fcsv:
+        st.sidebar.download_button('Data as CSV', fcsv)
+
     if video_file_buffer:
         
-        stwait.empty()
         tfflie.write(video_file_buffer.read())
-        cam_analyzer = Hough(tfflie.name, minDist, param1, param2, minRadius, maxRadius, record)
+        cam_analyzer = Hough(tfflie.name, minDist, param1, param2, minRadius, maxRadius, write_video)
         x_graph, y_graph, multiple_detection, blank_frame = cam_analyzer.bar_analysis(st, stframe)
+        write_csv(x_graph, y_graph)
 
-        ## Hide image component in post processing
-        stframe.empty()
-        stframe.image(blank_frame,channels = 'RGB',use_column_width='auto')
+        if write_video:
+            with open('output1.mp4', 'rb') as fvideo:
+                video_bytes = fvideo.read()
+                stframe.video(video_bytes)
+        else:
+            stframe.empty()
 
-        ## GRaph xy
-        #d = {'X': x_graph, 'Y': y_graph}
-        # df = pd.DataFrame(data=d)
-        # fig_rec = alt.Chart(df).mark_line().encode(
-        # alt.X("X"),
-        # alt.Y("Y")
-        # ).properties(
-        #     width=900,
-        #     height=500
-        # )
-        # st.altair_chart(fig_rec)
-
-      
     else:
-        stwait.subheader('Please load a video file...')
+        stsubtitle.subheader('No loaded video. \n Please load a video file.')
         
 
