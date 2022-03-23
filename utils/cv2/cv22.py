@@ -1,5 +1,4 @@
 import cv2
-import csv
 
 def image_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
         # initialize the dimensions of the image to be resized and
@@ -61,15 +60,4 @@ def get_position_pair_xy(results, width, height, pair, keypoints_pair, side):
 def get_position_xy(results, width, height, part, keypoints):
 
     return (int(results.pose_landmarks.landmark[int(keypoints[part])].x * width), int(results.pose_landmarks.landmark[int(keypoints[part])].y * height))
-    
-
-def write_csv(x, y):
-    
-    data=[]
-    data.append(x)
-    data.append(y)
-
-    with open('data.csv', 'w', encoding='UTF8', newline='') as f:
-        
-        writer = csv.writer(f)
-        writer.writerows(data)
+   

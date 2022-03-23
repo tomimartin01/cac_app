@@ -1,6 +1,3 @@
-import csv
-from tkinter import Y
-
 
 keypoints = {
     "LEFT_SHOULDER" : "11",
@@ -36,7 +33,7 @@ keypoints_pair = {
     # [X] poder exportar datos en csv
     # [X] cambiar el post analisis en bar analysis
     # [X] ver si puedo agregar labels a x,Y
+    # [X] validar tamano y dimensiones de video de entrada
     # [] revisar escalamiento de la imagenes
-    # [] revisar porq no se graban algunos videos
-    # [] validar tamano y dimensiones de video de entrada
     # [] activar mediapipe para bar analysis
+    # [] revisar porq no se graban algunos videos

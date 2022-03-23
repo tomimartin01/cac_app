@@ -2,14 +2,14 @@ import streamlit as st
 import mediapipe as mp
 import cv2
 import tempfile
-from analyzer import Analyzer
-from hough import Hough
-from const import keypoints, keypoints_pair
-import altair as alt
-import pandas as pd
-import numpy as np
 
-from utils import write_csv
+from const.const import keypoints, keypoints_pair
+from analysis.simple import Simple
+from analysis.simmetry import Simmetry
+from analysis.bar import Bar
+from utils.misc.misc import mp_validate_detection, hgh_validate_detection
+from utils.csv.csvv import write_csv
+from utils.st.stt import create_components, sidebar_format, video_options, hide_components, mp_detection_parameters, export_options, hgh_detection_parameters, plot_graph, write_video
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -19,21 +19,7 @@ DEMO_VIDEO = 'demo.mp4'
 DEMO_IMAGE = 'demo.jpg'
 
 
-
-st.markdown(
-    """
-    <style>
-    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-        width: 350px;
-    }
-    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
-        width: 350px;
-        margin-left: -350px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+sidebar_format(st)
 
 st.sidebar.subheader('App Options')
 
@@ -82,290 +68,104 @@ if app_mode =='Home':
        
     st.markdown('En esta aplicacion, estamos usando **MediaPipe** y **OPenCV** para el seguimiento de las poses del cuerpo humano. **StreamLit** para crear la interfaz grafica de usuario.')
     
-    st.markdown(
-    """
-    <style>
-    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-        width: 400px;
-    }
-    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
-        width: 400px;
-        margin-left: -400px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-    )
+    sidebar_format(st)
 
 elif app_mode =='Simple Body Analysis':
 
     st.title('Simple Body Analysis')
     st.set_option('deprecation.showfileUploaderEncoding', False)
-    
-    st.markdown(
-    """
-    <style>
-    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-        width: 400px;
-    }
-    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
-        width: 400px;
-        margin-left: -400px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,)
-
+    sidebar_format(st)
     ## Create dinamyc components, it allows to hide them 
-    stframe = st.empty()
-    stsubtitle = st.empty()
-    stgraphtitle= st.empty()
-    stgraphxlabel= st.empty()
-    stgraphx = st.empty()
-    stgraphylabel= st.empty()
-    stgraphy = st.empty()
-
+    stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy = create_components(st)
     ## set simple analysis options and parameters
-    st.sidebar.markdown('---')
-    st.sidebar.markdown('Video options') 
-    keypoints_options = st.sidebar.selectbox(
-    'Graph keypoint position',
-    [key for key, _ in keypoints.items()])
-    video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
-    write_video = st.sidebar.checkbox("Write Video")
-
-
-    st.sidebar.markdown('---')
-    st.sidebar.markdown('Detection Parameters')
-    detection_confidence = st.sidebar.slider('Min Detection Confidence', min_value =0.0,max_value = 1.0,value = 0.5)
-    tracking_confidence = st.sidebar.slider('Min Tracking Confidence', min_value = 0.0,max_value = 1.0,value = 0.5)
-    model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
+    video_file_buffer, is_writting = video_options(st)
+    keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
-    
-    st.sidebar.markdown("---")
-    st.sidebar.markdown('Export options') 
-    with open('output1.mp4', 'rb') as fvideo:
-        st.sidebar.download_button('Video as MP4', fvideo, file_name='output1.mp4')
-    with open('data.csv') as fcsv:
-        st.sidebar.download_button('Data as CSV', fcsv)
+    export_options(st)
     
     ## Only process if there is a video loaded
     if video_file_buffer:
         
         ## Hide componets, they are shown after the processing
-        stsubtitle.empty()
-        stgraphtitle.empty()
-        stgraphx.empty()
-        stgraphxlabel.empty()
-        stgraphylabel.empty()
-        stgraphy.empty()
+        hide_components(stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy)
 
         tfflie.write(video_file_buffer.read())
         ## create an instance of analyzer and execute frontal analysis
-        cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, write_video)
-        x_graph, y_graph = cam_analyzer.simple_analysis(st, stframe, keypoints_options)
-        ## write x,y on csv file
-        write_csv(x_graph, y_graph)
-        ## Remove image component 
-        stframe.empty()
-        stgraphtitle.subheader(f"{keypoints_options.replace('_',' ')} keypoint")
-
-        stgraphxlabel.markdown('X-axis Graph')
-        #stgraphx.line_chart({"X": x_graph})
-        d = {'Frames': list(range(0,len(x_graph))), 'Pixels': x_graph}
-        df = pd.DataFrame(data=d)
-        fig_rec = alt.Chart(df).mark_line().encode(
-        alt.X("Frames"),
-        alt.Y("Pixels")
-        ).properties(
-            width=700,
-            height=500
-        )
-        stgraphx.altair_chart(fig_rec)
-
-        stgraphylabel.markdown('Y-axis Graph')
-        #stgraphy.line_chart({"Y": y_graph})
-        d = {'Frames': list(range(0,len(y_graph))), 'Pixels': y_graph}
-        df = pd.DataFrame(data=d)
-        fig_rec = alt.Chart(df).mark_line().encode(
-        alt.X("Frames"),
-        alt.Y("Pixels")
-        ).properties(
-            width=700,
-            height=500
-        )
-        stgraphy.altair_chart(fig_rec)
-
-        if write_video:
-            with open('output1.mp4', 'rb') as fvideo:
-                video_bytes = fvideo.read()
-                stframe.video(video_bytes)
+        simple = Simple(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
+        x_graph, y_graph = simple.analysis(stframe, keypoints_options)
+        
+        if (not mp_validate_detection(x_graph, y_graph)):
+            ststatus.error('Inaccurate Detection. Please change Detection Parametrs.')
         else:
-            stframe.empty()
+
+            plot_graph('X-axis Graph', x_graph, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx)
+            plot_graph('Y-axis Graph', y_graph, keypoints_options, stgraphtitle, stgraphylabel, stgraphy)
+
+            if is_writting:
+                write_csv(x_graph, y_graph)
+                write_video(stframe)
+
     else:
-        stsubtitle.subheader('No loaded video. \n Please load a video file.')
+        ststatus.warning('No loaded video. \n Please load a video file.')
 
 elif app_mode =='Frontal Body Analysis':
 
     st.title('Frontal Body Analysis')
     st.set_option('deprecation.showfileUploaderEncoding', False)
-
-    st.markdown(
-    """
-    <style>
-    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-        width: 400px;
-    }
-    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
-        width: 400px;
-        margin-left: -400px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,)
-
-    stframe = st.empty() 
-    stsubtitle = st.empty()
-    stgraphtitle= st.empty()
-    stgraphxlabel= st.empty()
-    stgraphx = st.empty()
-    stgraphylabel= st.empty()
-    stgraphy = st.empty()
-    
-    st.sidebar.markdown('---')
-    st.sidebar.markdown('Video options') 
-    keypoints_options = st.sidebar.selectbox(
-    'Graph keypoint position',
-    [key for key, _ in keypoints_pair.items()])
-    video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
-    write_video = st.sidebar.checkbox("Write Video")
-
-    st.sidebar.markdown('---')
-    st.sidebar.markdown('Detection Parameters')
-    detection_confidence = st.sidebar.slider('Min Detection Confidence', min_value =0.0,max_value = 1.0,value = 0.5)
-    tracking_confidence = st.sidebar.slider('Min Tracking Confidence', min_value = 0.0,max_value = 1.0,value = 0.5)
-    model = st.sidebar.slider('Model Complexity', min_value = 0,max_value = 2,value = 1)
+    sidebar_format(st)
+    ## Create dinamyc components, it allows to hide them 
+    stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy = create_components(st)
+    ## set simple analysis options and parameters
+    video_file_buffer, is_writting = video_options(st)
+    keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints_pair)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
-    
-    st.sidebar.markdown("---")
-    st.sidebar.markdown('Export options') 
-    with open('output1.mp4', 'rb') as fvideo:
-        st.sidebar.download_button('Video as MP4', fvideo, file_name='output1.mp4')
-    with open('data.csv') as fcsv:
-        st.sidebar.download_button('Data as CSV', fcsv)
+    export_options(st)
 
     if video_file_buffer:
 
-        stsubtitle.empty()
-        stgraphtitle.empty()
-        stgraphx.empty()
-        stgraphxlabel.empty()
-        stgraphylabel.empty()
-        stgraphy.empty()
-
+        hide_components(stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy)
         tfflie.write(video_file_buffer.read())
-        cam_analyzer = Analyzer(tfflie.name, detection_confidence, tracking_confidence, model, write_video)
-        asimmetry_x_graph,asimmetry_y_graph = cam_analyzer.frontal_analysis(st, stframe, keypoints_options)
-
-        write_csv(asimmetry_x_graph, asimmetry_y_graph)
-
-        stgraphtitle.subheader(f"{keypoints_options.replace('_',' ')} keypoint")
-        stgraphxlabel.markdown('Asimmetry X Graph')
-        # stgraphx.line_chart({"Asimetry X": asimmetry_x_graph})
-        d = {'Frames': list(range(0,len(asimmetry_x_graph))), 'Pixels': asimmetry_x_graph}
-        df = pd.DataFrame(data=d)
-        fig_rec = alt.Chart(df).mark_line().encode(
-        alt.X("Frames"),
-        alt.Y("Pixels")
-        ).properties(
-            width=700,
-            height=500
-        )
-        stgraphx.altair_chart(fig_rec)
-
-        stgraphylabel.markdown('Asimmetry Y Graph')
-        # stgraphy.line_chart({"Asimmetry Y": asimmetry_y_graph})
-        d = {'Frames': list(range(0,len(asimmetry_y_graph))), 'Pixels': asimmetry_y_graph}
-        df = pd.DataFrame(data=d)
-        fig_rec = alt.Chart(df).mark_line().encode(
-        alt.X("Frames"),
-        alt.Y("Pixels")
-        ).properties(
-            width=700,
-            height=500
-        )
-        stgraphy.altair_chart(fig_rec)
+        simmetry = Simmetry(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
+        x_graph, y_graph = simmetry.analysis(stframe, keypoints_options)
         
-        if write_video:
-            with open('output1.mp4', 'rb') as fvideo:
-                video_bytes = fvideo.read()
-                stframe.video(video_bytes)
+        if (not mp_validate_detection(x_graph, y_graph)):
+            ststatus.error('Inaccurate Detection. Please change Detection Parametrs.')
         else:
-            stframe.empty()
+            plot_graph('X-axis Graph', x_graph, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx)
+            plot_graph('Y-axis Graph', y_graph, keypoints_options, stgraphtitle, stgraphylabel, stgraphy)
 
-
+            if is_writting:
+                write_csv(x_graph, y_graph)
+                write_video(stframe)
     else:
-        stsubtitle.subheader('No loaded video. \n Please load a video file.')
+        ststatus.warning('No loaded video. \n Please load a video file.')
 
 elif app_mode =='Bar Analysis':
 
     st.title('Bar Analysis')
     st.set_option('deprecation.showfileUploaderEncoding', False)
-
-    st.markdown(
-    """
-    <style>
-    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-        width: 400px;
-    }
-    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
-        width: 400px;
-        margin-left: -400px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,)
-
-    stframe = st.empty()
-    stsubtitle = st.empty()
-    sttitle= st.empty()
-
-    st.sidebar.markdown('---')  
-    st.sidebar.markdown('Video options')     
-    video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
-    write_video = st.sidebar.checkbox("Write Video")
-
-    st.sidebar.markdown('---')
-    st.sidebar.markdown('Detection Parameters')
-    minDist = st.sidebar.slider('Min Distance', min_value =0,max_value = 1000,value = 20)
-    param1 = st.sidebar.slider('Parameter 1', min_value =0,max_value = 1000,value = 50)
-    param2 = st.sidebar.slider('Parameter 2', min_value =0,max_value = 1000,value = 48)
-    minRadius = st.sidebar.slider('Min Radius', min_value =0,max_value = 1000,value = 51)
-    maxRadius = st.sidebar.slider('Max Radius', min_value =0,max_value = 1000,value = 87)
+    sidebar_format(st)
+    stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy = create_components(st)
+    video_file_buffer, is_writting = video_options(st)
+    maxRadius, minRadius, param2, param1, minDist = hgh_detection_parameters(st)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
-    
-    st.sidebar.markdown("---")
-    st.sidebar.markdown('Export options') 
-    with open('output1.mp4', 'rb') as fvideo:
-        st.sidebar.download_button('Video as MP4', fvideo, file_name='output1.mp4')
-    with open('data.csv') as fcsv:
-        st.sidebar.download_button('Data as CSV', fcsv)
+    tfflie = tempfile.NamedTemporaryFile(delete=False)
+    export_options(st)
 
     if video_file_buffer:
         
         tfflie.write(video_file_buffer.read())
-        cam_analyzer = Hough(tfflie.name, minDist, param1, param2, minRadius, maxRadius, write_video)
-        x_graph, y_graph, multiple_detection, blank_frame = cam_analyzer.bar_analysis(st, stframe)
-        write_csv(x_graph, y_graph)
-
-        if write_video:
-            with open('output1.mp4', 'rb') as fvideo:
-                video_bytes = fvideo.read()
-                stframe.video(video_bytes)
+        bar = Bar(tfflie.name, minDist, param1, param2, minRadius, maxRadius, is_writting)
+        x_graph, y_graph, multiple_detection = bar.analysis(st, stframe)
+        if (not hgh_validate_detection(x_graph, y_graph, multiple_detection)):
+            ststatus.error('Inaccurate Detection. Please change Detection Parametrs.')
         else:
-            stframe.empty()
-
+            if is_writting:
+                write_csv(x_graph, y_graph)
+                write_video(stframe)
+            else:
+                ststatus.success('Analysis finished successfully')
     else:
-        stsubtitle.subheader('No loaded video. \n Please load a video file.')
+        ststatus.warning('No loaded video. \n Please load a video file.')
         
 
