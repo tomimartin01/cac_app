@@ -2,7 +2,7 @@ import logging
 
 def check_multiple_detection(count, total):
 
-    if count > 0.1*total:
+    if count < 0.1*total:
         return True
         
     return False

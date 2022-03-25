@@ -10,6 +10,7 @@ from analysis.bar import Bar
 from utils.misc.misc import mp_validate_detection, hgh_validate_detection
 from utils.csv.csvv import write_csv
 from utils.st.stt import create_components, sidebar_format, video_options, hide_components, mp_detection_parameters, export_options, hgh_detection_parameters, plot_graph, write_video
+from utils.cv22.cv22 import analysis
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -60,6 +61,7 @@ app_mode = st.sidebar.selectbox('Choose the App mode',
 
 if app_mode =='Home':
     st.title('Crossfit Assistan Couch App')
+    st.markdown('---')
     st.markdown('Crossfit Assistan Couch (CAC) App  herramienta de software para el análisis de \
                 algunos de los ejercicios de halterofilia y gimnasia de la actividad deportiva CrossFit, basada\
                 en técnicas de inteligencia artificial y visión por computadora. El entrenador podra hacer foco en \
@@ -73,6 +75,7 @@ if app_mode =='Home':
 elif app_mode =='Simple Body Analysis':
 
     st.title('Simple Body Analysis')
+    st.markdown('---')
     st.set_option('deprecation.showfileUploaderEncoding', False)
     sidebar_format(st)
     ## Create dinamyc components, it allows to hide them 
@@ -92,17 +95,17 @@ elif app_mode =='Simple Body Analysis':
         tfflie.write(video_file_buffer.read())
         ## create an instance of analyzer and execute frontal analysis
         simple = Simple(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
-        x_graph, y_graph = simple.analysis(stframe, keypoints_options)
+        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(stframe, keypoints_options, simple, None, None)
         
-        if (not mp_validate_detection(x_graph, y_graph)):
+        if (not mp_validate_detection(x_body, y_body)):
             ststatus.error('Inaccurate Detection. Please change Detection Parametrs.')
         else:
 
-            plot_graph('X-axis Graph', x_graph, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx)
-            plot_graph('Y-axis Graph', y_graph, keypoints_options, stgraphtitle, stgraphylabel, stgraphy)
+            plot_graph('X-axis Graph', x_body, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx)
+            plot_graph('Y-axis Graph', y_body, keypoints_options, stgraphtitle, stgraphylabel, stgraphy)
 
             if is_writting:
-                write_csv(x_graph, y_graph)
+                write_csv(x_body, y_body, x_bar, y_bar)
                 write_video(stframe)
 
     else:
@@ -111,6 +114,7 @@ elif app_mode =='Simple Body Analysis':
 elif app_mode =='Frontal Body Analysis':
 
     st.title('Frontal Body Analysis')
+    st.markdown('---')
     st.set_option('deprecation.showfileUploaderEncoding', False)
     sidebar_format(st)
     ## Create dinamyc components, it allows to hide them 
@@ -126,16 +130,16 @@ elif app_mode =='Frontal Body Analysis':
         hide_components(stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy)
         tfflie.write(video_file_buffer.read())
         simmetry = Simmetry(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
-        x_graph, y_graph = simmetry.analysis(stframe, keypoints_options)
+        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(stframe, keypoints_options, None, simmetry, None)
         
-        if (not mp_validate_detection(x_graph, y_graph)):
+        if (not mp_validate_detection(x_body, y_body)):
             ststatus.error('Inaccurate Detection. Please change Detection Parametrs.')
         else:
-            plot_graph('X-axis Graph', x_graph, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx)
-            plot_graph('Y-axis Graph', y_graph, keypoints_options, stgraphtitle, stgraphylabel, stgraphy)
+            plot_graph('X-axis Graph', x_body, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx)
+            plot_graph('Y-axis Graph', y_body, keypoints_options, stgraphtitle, stgraphylabel, stgraphy)
 
             if is_writting:
-                write_csv(x_graph, y_graph)
+                write_csv(x_body, y_body, x_bar, y_bar)
                 write_video(stframe)
     else:
         ststatus.warning('No loaded video. \n Please load a video file.')
@@ -143,10 +147,12 @@ elif app_mode =='Frontal Body Analysis':
 elif app_mode =='Bar Analysis':
 
     st.title('Bar Analysis')
+    st.markdown('---')
     st.set_option('deprecation.showfileUploaderEncoding', False)
     sidebar_format(st)
     stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy = create_components(st)
     video_file_buffer, is_writting = video_options(st)
+    keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints_pair)
     maxRadius, minRadius, param2, param1, minDist = hgh_detection_parameters(st)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
@@ -155,16 +161,17 @@ elif app_mode =='Bar Analysis':
     if video_file_buffer:
         
         tfflie.write(video_file_buffer.read())
+        simple = Simple(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
         bar = Bar(tfflie.name, minDist, param1, param2, minRadius, maxRadius, is_writting)
-        x_graph, y_graph, multiple_detection = bar.analysis(st, stframe)
-        if (not hgh_validate_detection(x_graph, y_graph, multiple_detection)):
+        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(stframe, None, simple, None, bar)
+        if (not hgh_validate_detection(x_body, y_body, multiple_detection)):
             ststatus.error('Inaccurate Detection. Please change Detection Parametrs.')
         else:
+            plot_graph('X-axis Graph', x_body, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx)
+            plot_graph('Y-axis Graph', y_body, keypoints_options, stgraphtitle, stgraphylabel, stgraphy)
             if is_writting:
-                write_csv(x_graph, y_graph)
+                write_csv(x_body, y_body, x_bar, y_bar)
                 write_video(stframe)
-            else:
-                ststatus.success('Analysis finished successfully')
     else:
         ststatus.warning('No loaded video. \n Please load a video file.')
         

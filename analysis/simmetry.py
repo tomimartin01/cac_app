@@ -1,109 +1,65 @@
-
 import cv2
-import time
 import mediapipe as mp
-from utils.cv2.cv22 import image_resize, get_asimetry_y, get_asimetry_x, get_position_pair_xy
-from utils.misc.misc import  validate_video_format
+from utils.cv22.cv22 import  get_asimetry_y, get_asimetry_x, get_position_pair_xy
 from const.const import keypoints_pair
 
 class Simmetry:
 
     def __init__(self, video, detection_confidence, tracking_confidence, model, record):
         self.video = video
-        self.detection_confidence = detection_confidence
-        self.tracking_confidence = tracking_confidence
-        self.model = model
         self.record = record
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_pose = mp.solutions.pose
+        self.pose = self.mp_pose.Pose(
+        min_detection_confidence= detection_confidence,
+        min_tracking_confidence= tracking_confidence,
+        model_complexity = model)
+        self.drawing_spec = self.mp_drawing.DrawingSpec(thickness=2, circle_radius=2)
+        self.asimmetry_threshold = False
+        
 
-    def analysis(self, stframe, keypoints_options):
+    def process(self, keypoints_options, count_frames, total_frames, width, height, x_graph, y_graph, frame):
 
-        cap = cv2.VideoCapture(self.video)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = self.pose.process(frame)
 
-        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps_input = int(cap.get(cv2.CAP_PROP_FPS))
-        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        frame.flags.writeable = True
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-        if not validate_video_format(total_frames, height, width):
-            return None, None
+        cv2.putText(frame, f'{count_frames} of {total_frames}', (width - 250, height - 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_4)
+        if results.pose_landmarks:
+            self.mp_drawing.draw_landmarks(
+                image = frame,
+                landmark_list=results.pose_landmarks,
+                connections= self.mp_pose.POSE_CONNECTIONS,
+                landmark_drawing_spec=self.drawing_spec,
+                connection_drawing_spec= self.drawing_spec)
 
-        codec = cv2.VideoWriter_fourcc('V','P','0','9')
-        out = cv2.VideoWriter('output1.mp4', codec, fps_input, (width, height))
+            if not self.asimmetry_threshold:
+                asimmetry_y0 = get_asimetry_y(results, width, height,keypoints_pair, 'HEELS')
+                asimmetry_x0 = get_asimetry_x(results, width, height,keypoints_pair, 'HEELS')
+                self.asimmetry_threshold = True
 
-        fps = 0
-        count_frames= 0
-        drawing_spec = self.mp_drawing.DrawingSpec(thickness=2, circle_radius=2)
+            for pair in keypoints_pair:
 
-        with self.mp_pose.Pose(
-        min_detection_confidence= self.detection_confidence,
-        min_tracking_confidence= self.tracking_confidence,
-        model_complexity = self.model)as pose:
-            prevTime = 0
-            asimmetry_x_graph, asimmetry_y_graph = [], []
-            asimmetry_threshold = False
-            while cap.isOpened():
-                count_frames+=1
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                results = pose.process(frame)
-
-                frame.flags.writeable = True
-                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-
-                # draw the frame number
-                cv2.putText(frame, f'{count_frames} of {total_frames}', (width - 250, height - 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_4)
+                xl, yl = get_position_pair_xy(results, width, height, pair, keypoints_pair, 'l')
+                xr, yr = get_position_pair_xy(results, width, height, pair, keypoints_pair, 'r')
                 
-                if results.pose_landmarks:
-                    self.mp_drawing.draw_landmarks(
-                    image = frame,
-                    landmark_list=results.pose_landmarks,
-                    connections= self.mp_pose.POSE_CONNECTIONS,
-                    landmark_drawing_spec=drawing_spec,
-                    connection_drawing_spec=drawing_spec)
-                    if not asimmetry_threshold:
-                        asimmetry_y0 = get_asimetry_y(results, width, height,keypoints_pair, 'HEELS')
-                        asimmetry_x0 = get_asimetry_x(results, width, height,keypoints_pair, 'HEELS')
-                        asimmetry_threshold = True
+                asimmetry_y = get_asimetry_y(results, width, height,keypoints_pair, pair)
+                asimmetry_x = get_asimetry_x(results, width, height,keypoints_pair, pair)
+                if asimmetry_x  > 7 or asimmetry_y > 7:
+                #if asimmetry_x  > 7 + asimmetry_x0 or asimmetry_y > 7 + asimmetry_y0:
+                    cv2.circle(frame,(xl, yl), 5, (0, 0, 255), -1)
+                    cv2.circle(frame,(xr, yr), 5, (0, 0, 255), -1)
+                else:
+                    cv2.circle(frame,(xl, yl), 5, (0, 255, 0), -1)
+                    cv2.circle(frame,(xr, yr), 5, (0, 255, 0), -1)
 
-                    for pair in keypoints_pair:
+                if pair == keypoints_options:
+                    x_graph.append(asimmetry_x)
+                    y_graph.append(asimmetry_y)
+        
+        return frame, x_graph, y_graph
 
-                        xl, yl = get_position_pair_xy(results, width, height, pair, keypoints_pair, 'l')
-                        xr, yr = get_position_pair_xy(results, width, height, pair, keypoints_pair, 'r')
-                        
-                        asimmetry_y = get_asimetry_y(results, width, height,keypoints_pair, pair)
-                        asimmetry_x = get_asimetry_x(results, width, height,keypoints_pair, pair)
-                        if asimmetry_x  > 7 or asimmetry_y > 7:
-                        #if asimmetry_x  > 7 + asimmetry_x0 or asimmetry_y > 7 + asimmetry_y0:
-                            cv2.circle(frame,(xl, yl), 5, (0, 0, 255), -1)
-                            cv2.circle(frame,(xr, yr), 5, (0, 0, 255), -1)
-                        else:
-                            cv2.circle(frame,(xl, yl), 5, (0, 255, 0), -1)
-                            cv2.circle(frame,(xr, yr), 5, (0, 255, 0), -1)
-
-                        if pair == keypoints_options:
-                            asimmetry_x_graph.append(asimmetry_x)
-                            asimmetry_y_graph.append(asimmetry_y)
-                            
-
-                currTime = time.time()
-                fps += 1 / (currTime - prevTime)
-                prevTime = currTime
-
-                if self.record:
-                    out.write(frame)
-
-                frame = cv2.resize(frame,(0,0),fx = 0.8 , fy = 0.8)
-                frame = image_resize(image = frame, width = 640)
-                stframe.image(frame,channels = 'BGR',use_column_width=True)
-                
-        cap.release()
-        out. release()
-        stframe.empty()
-
-        return asimmetry_x_graph, asimmetry_y_graph
 
