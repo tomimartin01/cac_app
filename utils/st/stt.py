@@ -1,6 +1,5 @@
 import altair as alt
 import pandas as pd
-
 from const.const import OUTPUT_VIDEO, OUTPUT_CSV
 
 def sidebar_format(st):
@@ -29,6 +28,7 @@ def create_components(st):
     stgraphx = st.empty()
     stgraphylabel= st.empty()
     stgraphy = st.empty()
+
 
     return stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy
 
@@ -63,12 +63,13 @@ def mp_detection_parameters(st, body):
     return keypoints_options, detection_confidence, tracking_confidence, model
 
 def export_options(st):
-    st.sidebar.markdown('Export options') 
+    st.markdown('Export options')
     with open(OUTPUT_VIDEO, 'rb') as fvideo:
         st.sidebar.download_button('Video as MP4', fvideo, file_name=OUTPUT_VIDEO)
+
     with open(OUTPUT_CSV) as fcsv:
         st.sidebar.download_button('Data as CSV', fcsv)
-    
+
 
 def hgh_detection_parameters(st):
 

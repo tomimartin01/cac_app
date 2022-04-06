@@ -1,5 +1,6 @@
 import cv2
 from utils.misc.misc import  validate_video_format, check_multiple_detection
+from const.const import OUTPUT_VIDEO
 
 def image_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
         # initialize the dimensions of the image to be resized and
@@ -81,7 +82,7 @@ def analysis(stframe, keypoints_options, mp, sim, bar):
     
     #codec = cv2.VideoWriter_fourcc(*FLAGS.output_format)
     codec = cv2.VideoWriter_fourcc('V','P','0','9')
-    out = cv2.VideoWriter('output1.mp4', codec, fps_input, (width, height))
+    out = cv2.VideoWriter(OUTPUT_VIDEO, codec, fps_input, (width, height))
     count_frames= 0
     x_body, y_body, x_bar, y_bar = [], [], [], []
     count_multiple_detection = 0
@@ -114,3 +115,7 @@ def analysis(stframe, keypoints_options, mp, sim, bar):
     stframe.empty()
 
     return x_body, y_body, x_bar, y_bar, multiple_detection
+
+
+
+

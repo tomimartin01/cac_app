@@ -8,7 +8,7 @@ from analysis.body import Body
 from analysis.asimmetry import Asimmetry
 from analysis.bar import Bar
 from utils.misc.misc import mp_validate_detection, hgh_validate_detection
-from utils.csv.csvv import write_csv
+from utils.csvv.csvv import write_csv
 from utils.st.stt import create_components, sidebar_format, video_options, hide_components, mp_detection_parameters, export_options, hgh_detection_parameters, plot_graph, write_video
 from utils.cv22.cv22 import analysis
 
@@ -67,8 +67,6 @@ elif app_mode =='Body Analysis':
     video_file_buffer, is_writting = video_options(st)
     keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
-    if is_writting and (exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV)):
-        export_options(st)
     
     ## Only process if there is a video loaded
     if video_file_buffer:
@@ -87,10 +85,12 @@ elif app_mode =='Body Analysis':
 
             plot_graph('X-axis Graph', x_body, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx)
             plot_graph('Y-axis Graph', y_body, keypoints_options, stgraphtitle, stgraphylabel, stgraphy)
-
+            print(exists(OUTPUT_VIDEO), exists(OUTPUT_CSV))
             if is_writting:
                 write_csv(x_body, y_body, x_bar, y_bar)
                 write_video(stframe)
+                if exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV):
+                    export_options(st)
 
     else:
         ststatus.warning('No loaded video. \n Please load a video file.')
@@ -107,8 +107,6 @@ elif app_mode =='Asimmetry Analysis':
     video_file_buffer, is_writting = video_options(st)
     keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints_pair)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
-    if is_writting and (exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV)):
-        export_options(st)
 
     if video_file_buffer:
 
@@ -126,6 +124,8 @@ elif app_mode =='Asimmetry Analysis':
             if is_writting:
                 write_csv(x_body, y_body, x_bar, y_bar)
                 write_video(stframe)
+                if exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV):
+                    export_options(st)
     else:
         ststatus.warning('No loaded video. \n Please load a video file.')
 
@@ -141,8 +141,6 @@ elif app_mode =='Bar Analysis':
     maxRadius, minRadius, param2, param1, minDist = hgh_detection_parameters(st)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
-    if is_writting and (exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV)):
-        export_options(st)
 
     if video_file_buffer:
         
@@ -158,6 +156,8 @@ elif app_mode =='Bar Analysis':
             if is_writting:
                 write_csv(x_body, y_body, x_bar, y_bar)
                 write_video(stframe)
+                if exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV):
+                    export_options(st)
     else:
         ststatus.warning('No loaded video. \n Please load a video file.')
         
