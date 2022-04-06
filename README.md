@@ -5,14 +5,14 @@ CrossFit Coach Assistant (CCA) is a software tool that facilitates the coach's a
 To achieve these goals, CCA offers 3 different types of analysis using Machine Learning and computer vision techniques:
 
 - Body analysis 
-- Symmetry analysis 
+- Asimmetry analysis 
 - Bar analysis
 
 ## Body analysis
 
 With this analysis, you can see the keypoints postition in pixels of the body. You have to upload a video.
 
-## Simmetry analysis
+## Asimmetry analysis
 
 With this analysis, you can see the asimmetry in pixels between the right keypoints and the left keypoints of the body. You have to upload a frontal plane video.
 

@@ -36,7 +36,7 @@ if app_mode =='Home':
                 ''')
     st.markdown('''
                 - Body analysis 
-                - Symmetry analysis 
+                - Asimmetry analysis 
                 - Bar analysis
             ''')
 
