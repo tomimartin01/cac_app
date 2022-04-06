@@ -4,8 +4,8 @@ import tempfile
 from os.path import exists
 
 from const.const import keypoints, keypoints_pair, OUTPUT_VIDEO, OUTPUT_CSV
-from analysis.simple import Simple
-from analysis.simmetry import Simmetry
+from analysis.body import Body
+from analysis.asimmetry import Asimmetry
 from analysis.bar import Bar
 from utils.misc.misc import mp_validate_detection, hgh_validate_detection
 from utils.csv.csvv import write_csv
@@ -23,7 +23,7 @@ st.sidebar.subheader('App Options')
 
 
 app_mode = st.sidebar.selectbox('Choose the App mode',
-                                ['Home', 'Body Analysis', 'Simmetry Analysis', 'Bar Analysis'])
+                                ['Home', 'Body Analysis', 'Asimmetry Analysis', 'Bar Analysis'])
 
 if app_mode =='Home':
     st.title('Crossfit Assistan Couch App')
@@ -44,7 +44,7 @@ if app_mode =='Home':
     st.markdown ('''With this analysis, you can see the keypoints postition in pixels of the body. \
                     You have to upload a video.''')
 
-    st.subheader('Simmetry analysis')
+    st.subheader('Asimmetry Analysis')
     st.markdown ('''With this analysis, you can see the asimmetry in pixels between the right keypoints and the left keypoints \
                     of the body. You have to upload a frontal plane video.''')
 
@@ -63,7 +63,7 @@ elif app_mode =='Body Analysis':
     sidebar_format(st)
     ## Create dinamyc components, it allows to hide them 
     stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy = create_components(st)
-    ## set simple analysis options and parameters
+    ## set Body analysis options and parameters
     video_file_buffer, is_writting = video_options(st)
     keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
@@ -78,8 +78,8 @@ elif app_mode =='Body Analysis':
 
         tfflie.write(video_file_buffer.read())
         ## create an instance of analyzer and execute frontal analysis
-        simple = Simple(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
-        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(stframe, keypoints_options, simple, None, None)
+        body = Body(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
+        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(stframe, keypoints_options, body, None, None)
         
         if (not mp_validate_detection(x_body, y_body)):
             ststatus.error('Inaccurate Detection. Please change Detection Parametrs.')
@@ -95,15 +95,15 @@ elif app_mode =='Body Analysis':
     else:
         ststatus.warning('No loaded video. \n Please load a video file.')
 
-elif app_mode =='Simmetry Analysis':
+elif app_mode =='Asimmetry Analysis':
 
-    st.title('Simmetry Analysis')
+    st.title('Asimmetry Analysis')
     st.markdown('---')
     st.set_option('deprecation.showfileUploaderEncoding', False)
     sidebar_format(st)
     ## Create dinamyc components, it allows to hide them 
     stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy = create_components(st)
-    ## set simple analysis options and parameters
+    ## set Body analysis options and parameters
     video_file_buffer, is_writting = video_options(st)
     keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints_pair)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
@@ -114,14 +114,14 @@ elif app_mode =='Simmetry Analysis':
 
         hide_components(stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy)
         tfflie.write(video_file_buffer.read())
-        simmetry = Simmetry(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
-        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(stframe, keypoints_options, None, simmetry, None)
+        asimmetry = Asimmetry(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
+        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(stframe, keypoints_options, None, asimmetry, None)
         
         if (not mp_validate_detection(x_body, y_body)):
             ststatus.error('Inaccurate Detection. Please change Detection Parametrs.')
         else:
-            plot_graph('X-axis Graph', x_body, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx)
-            plot_graph('Y-axis Graph', y_body, keypoints_options, stgraphtitle, stgraphylabel, stgraphy)
+            plot_graph('X-axis Asimmetry Graph', x_body, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx)
+            plot_graph('Y-axis Asimmetry Graph', y_body, keypoints_options, stgraphtitle, stgraphylabel, stgraphy)
 
             if is_writting:
                 write_csv(x_body, y_body, x_bar, y_bar)
@@ -147,9 +147,9 @@ elif app_mode =='Bar Analysis':
     if video_file_buffer:
         
         tfflie.write(video_file_buffer.read())
-        simple = Simple(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
+        Body = Body(tfflie.name, detection_confidence, tracking_confidence, model, is_writting)
         bar = Bar(tfflie.name, minDist, param1, param2, minRadius, maxRadius, is_writting)
-        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(stframe, None, simple, None, bar)
+        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(stframe, None, Body, None, bar)
         if (not hgh_validate_detection(x_body, y_body, multiple_detection)):
             ststatus.error('Inaccurate Detection. Please change Detection Parametrs.')
         else:
