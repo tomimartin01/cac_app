@@ -1,6 +1,5 @@
 import streamlit as st
 import mediapipe as mp
-import cv2
 import tempfile
 from os.path import exists
 
@@ -22,37 +21,6 @@ sidebar_format(st)
 
 st.sidebar.subheader('App Options')
 
-@st.cache()
-def image_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
-    # initialize the dimensions of the image to be resized and
-    # grab the image size
-    dim = None
-    (h, w) = image.shape[:2]
-
-    # if both the width and height are None, then return the
-    # original image
-    if width is None and height is None:
-        return image
-
-    # check to see if the width is None
-    if width is None:
-        # calculate the ratio of the height and construct the
-        # dimensions
-        r = height / float(h)
-        dim = (int(w * r), height)
-
-    # otherwise, the height is None
-    else:
-        # calculate the ratio of the width and construct the
-        # dimensions
-        r = width / float(w)
-        dim = (width, int(h * r))
-
-    # resize the image
-    resized = cv2.resize(image, dim, interpolation=inter)
-
-    # return the resized image
-    return resized
 
 app_mode = st.sidebar.selectbox('Choose the App mode',
                                 ['Home', 'Body Analysis', 'Simmetry Analysis', 'Bar Analysis'])
@@ -60,7 +28,6 @@ app_mode = st.sidebar.selectbox('Choose the App mode',
 if app_mode =='Home':
     st.title('Crossfit Assistan Couch App')
 
-    # st.markdown('---')
     st.markdown ('''CrossFit Coach Assistant (CCA) is a software tool that facilitates the coach's analysis of strength \
                 and gymnastic exercises and the trainee's correction by displaying the results on a User Interface.
                 ''') 
@@ -72,17 +39,15 @@ if app_mode =='Home':
                 - Symmetry analysis 
                 - Bar analysis
             ''')
-    # st.markdown('---')
+
     st.subheader('Body analysis')
     st.markdown ('''With this analysis, you can see the keypoints postition in pixels of the body. \
                     You have to upload a video.''')
 
-    # st.markdown('---')
     st.subheader('Simmetry analysis')
     st.markdown ('''With this analysis, you can see the asimmetry in pixels between the right keypoints and the left keypoints \
                     of the body. You have to upload a frontal plane video.''')
 
-    # st.markdown('---')
     st.subheader('Bar analysis')
     st.markdown ('''With this analysis, you can see the bar postition and the keypoints postition of the body in pixels . \
                     You have to upload a side plane video.''')

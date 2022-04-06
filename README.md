@@ -24,7 +24,7 @@ With this analysis, you can see the bar postition and the keypoints postition of
 
 ## Python setup
 
-Create a virtual env or use your native python with version 3.9.To check your python version execute
+Create a virtual env or use your native python with version 3.9. To check your python version execute
 
 `python -v`
 
