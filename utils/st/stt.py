@@ -1,6 +1,8 @@
 import altair as alt
 import pandas as pd
 
+from const.const import OUTPUT_VIDEO, OUTPUT_CSV
+
 def sidebar_format(st):
 
     st.markdown(
@@ -62,9 +64,9 @@ def mp_detection_parameters(st, body):
 
 def export_options(st):
     st.sidebar.markdown('Export options') 
-    with open('output1.mp4', 'rb') as fvideo:
-        st.sidebar.download_button('Video as MP4', fvideo, file_name='output1.mp4')
-    with open('data.csv') as fcsv:
+    with open(OUTPUT_VIDEO, 'rb') as fvideo:
+        st.sidebar.download_button('Video as MP4', fvideo, file_name=OUTPUT_VIDEO)
+    with open(OUTPUT_CSV) as fcsv:
         st.sidebar.download_button('Data as CSV', fcsv)
     
 
@@ -98,6 +100,6 @@ def plot_graph(title, axis, keypoints_options, stgraphtitle, stgraphxlabel, stgr
     stgraphx.altair_chart(fig_rec)
 
 def write_video(stframe):
-    with open('output1.mp4', 'rb') as fvideo:
+    with open(OUTPUT_VIDEO, 'rb') as fvideo:
         video_bytes = fvideo.read()
         stframe.video(video_bytes)

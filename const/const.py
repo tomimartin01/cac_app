@@ -1,4 +1,7 @@
 
+OUTPUT_VIDEO = 'output.mp4'
+OUTPUT_CSV = 'data.csv'
+
 keypoints = {
     "LEFT_SHOULDER" : "11",
     "RIGHT_SHOULDER" : "12",
@@ -28,12 +31,3 @@ keypoints_pair = {
     "HEELS" : ["29", "30"],
     "FOOT_INDEX" : ["31", "32"],
     }
-
-    # [X] video procesado para descargar
-    # [X] poder exportar datos en csv
-    # [X] cambiar el post analisis en bar analysis
-    # [X] ver si puedo agregar labels a x,Y
-    # [X] validar tamano y dimensiones de video de entrada
-    # [] revisar escalamiento de la imagenes
-    # [] activar mediapipe para bar analysis
-    # [] revisar porq no se graban algunos videos

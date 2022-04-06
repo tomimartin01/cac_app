@@ -17,6 +17,8 @@ class Simmetry:
         model_complexity = model)
         self.drawing_spec = self.mp_drawing.DrawingSpec(thickness=2, circle_radius=2)
         self.asimmetry_threshold = False
+        self.asimmetry_y0 = 0
+        self.asimmetry_y0 = 0
         
 
     def process(self, keypoints_options, count_frames, total_frames, width, height, x_graph, y_graph, frame):
@@ -37,8 +39,8 @@ class Simmetry:
                 connection_drawing_spec= self.drawing_spec)
 
             if not self.asimmetry_threshold:
-                asimmetry_y0 = get_asimetry_y(results, width, height,keypoints_pair, 'HEELS')
-                asimmetry_x0 = get_asimetry_x(results, width, height,keypoints_pair, 'HEELS')
+                self.asimmetry_y0 = get_asimetry_y(results, width, height,keypoints_pair, 'HEELS')
+                self.asimmetry_x0 = get_asimetry_x(results, width, height,keypoints_pair, 'HEELS')
                 self.asimmetry_threshold = True
 
             for pair in keypoints_pair:
@@ -48,8 +50,8 @@ class Simmetry:
                 
                 asimmetry_y = get_asimetry_y(results, width, height,keypoints_pair, pair)
                 asimmetry_x = get_asimetry_x(results, width, height,keypoints_pair, pair)
-                if asimmetry_x  > 7 or asimmetry_y > 7:
-                #if asimmetry_x  > 7 + asimmetry_x0 or asimmetry_y > 7 + asimmetry_y0:
+                #if asimmetry_x  > 7 or asimmetry_y > 7:
+                if asimmetry_x  > 7 + self.asimmetry_x0 or asimmetry_y > 7 + self.asimmetry_y0:
                     cv2.circle(frame,(xl, yl), 5, (0, 0, 255), -1)
                     cv2.circle(frame,(xr, yr), 5, (0, 0, 255), -1)
                 else:

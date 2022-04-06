@@ -2,8 +2,9 @@ import streamlit as st
 import mediapipe as mp
 import cv2
 import tempfile
+from os.path import exists
 
-from const.const import keypoints, keypoints_pair
+from const.const import keypoints, keypoints_pair, OUTPUT_VIDEO, OUTPUT_CSV
 from analysis.simple import Simple
 from analysis.simmetry import Simmetry
 from analysis.bar import Bar
@@ -15,9 +16,6 @@ from utils.cv22.cv22 import analysis
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
-
-DEMO_VIDEO = 'demo.mp4'
-DEMO_IMAGE = 'demo.jpg'
 
 
 sidebar_format(st)
@@ -57,24 +55,44 @@ def image_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
     return resized
 
 app_mode = st.sidebar.selectbox('Choose the App mode',
-                                ['Home', 'Simple Body Analysis', 'Frontal Body Analysis', 'Bar Analysis'])
+                                ['Home', 'Body Analysis', 'Simmetry Analysis', 'Bar Analysis'])
 
 if app_mode =='Home':
     st.title('Crossfit Assistan Couch App')
-    st.markdown('---')
-    st.markdown('Crossfit Assistan Couch (CAC) App  herramienta de software para el análisis de \
-                algunos de los ejercicios de halterofilia y gimnasia de la actividad deportiva CrossFit, basada\
-                en técnicas de inteligencia artificial y visión por computadora. El entrenador podra hacer foco en \
-                tres aspectos diferentes para poder corregir al atleta: Trajectoria de puntos de referencia del \
-                cuerpo del atleta, simetria y trajectoria de la barra olimpica.')
-       
-    st.markdown('En esta aplicacion, estamos usando **MediaPipe** y **OPenCV** para el seguimiento de las poses del cuerpo humano. **StreamLit** para crear la interfaz grafica de usuario.')
+
+    # st.markdown('---')
+    st.markdown ('''CrossFit Coach Assistant (CCA) is a software tool that facilitates the coach's analysis of strength \
+                and gymnastic exercises and the trainee's correction by displaying the results on a User Interface.
+                ''') 
+    st.markdown ('''To achieve these goals, CCA offers 3 different types of analysis using Machine Learning and computer\
+                vision techniques:
+                ''')
+    st.markdown('''
+                - Body analysis 
+                - Symmetry analysis 
+                - Bar analysis
+            ''')
+    # st.markdown('---')
+    st.subheader('Body analysis')
+    st.markdown ('''With this analysis, you can see the keypoints postition in pixels of the body. \
+                    You have to upload a video.''')
+
+    # st.markdown('---')
+    st.subheader('Simmetry analysis')
+    st.markdown ('''With this analysis, you can see the asimmetry in pixels between the right keypoints and the left keypoints \
+                    of the body. You have to upload a frontal plane video.''')
+
+    # st.markdown('---')
+    st.subheader('Bar analysis')
+    st.markdown ('''With this analysis, you can see the bar postition and the keypoints postition of the body in pixels . \
+                    You have to upload a side plane video.''')
+
     
     sidebar_format(st)
 
-elif app_mode =='Simple Body Analysis':
+elif app_mode =='Body Analysis':
 
-    st.title('Simple Body Analysis')
+    st.title('Body Analysis')
     st.markdown('---')
     st.set_option('deprecation.showfileUploaderEncoding', False)
     sidebar_format(st)
@@ -84,7 +102,8 @@ elif app_mode =='Simple Body Analysis':
     video_file_buffer, is_writting = video_options(st)
     keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
-    export_options(st)
+    if is_writting and (exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV)):
+        export_options(st)
     
     ## Only process if there is a video loaded
     if video_file_buffer:
@@ -111,9 +130,9 @@ elif app_mode =='Simple Body Analysis':
     else:
         ststatus.warning('No loaded video. \n Please load a video file.')
 
-elif app_mode =='Frontal Body Analysis':
+elif app_mode =='Simmetry Analysis':
 
-    st.title('Frontal Body Analysis')
+    st.title('Simmetry Analysis')
     st.markdown('---')
     st.set_option('deprecation.showfileUploaderEncoding', False)
     sidebar_format(st)
@@ -123,7 +142,8 @@ elif app_mode =='Frontal Body Analysis':
     video_file_buffer, is_writting = video_options(st)
     keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints_pair)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
-    export_options(st)
+    if is_writting and (exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV)):
+        export_options(st)
 
     if video_file_buffer:
 
@@ -156,7 +176,8 @@ elif app_mode =='Bar Analysis':
     maxRadius, minRadius, param2, param1, minDist = hgh_detection_parameters(st)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
-    export_options(st)
+    if is_writting and (exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV)):
+        export_options(st)
 
     if video_file_buffer:
         
