@@ -63,7 +63,7 @@ def get_position_xy(results, width, height, part, keypoints):
 
     return (int(results.pose_landmarks.landmark[int(keypoints[part])].x * width), int(results.pose_landmarks.landmark[int(keypoints[part])].y * height))
 
-def analysis(stframe, keypoints_options, mp, sim, bar):
+def analysis( keypoints_options, mp, sim, bar, ph_graphx):
     
     if mp:
         cap = cv2.VideoCapture(mp.video)
@@ -87,8 +87,9 @@ def analysis(stframe, keypoints_options, mp, sim, bar):
     x_body, y_body, x_bar, y_bar = [], [], [], []
     count_multiple_detection = 0
     multiple_detection = False
+    progress_bar = ph_graphx.progress(0)
     while cap.isOpened():
-
+        progress_bar.progress(round((count_frames*100)/total_frames))
         count_frames+=1
         ret, frame = cap.read()
 
@@ -96,24 +97,20 @@ def analysis(stframe, keypoints_options, mp, sim, bar):
             break
         if mp and not bar:
             frame, x_body, y_body = mp.process(keypoints_options, count_frames, total_frames, width, height, x_body, y_body, frame)
+            out.write(frame)
         elif sim:
             frame, x_body, y_body = sim.process(keypoints_options, count_frames, total_frames, width, height, x_body, y_body, frame)
+            out.write(frame)
         elif bar:
             frame, x_bar, y_bar, multiple_detection = bar.process(count_frames, total_frames, width, height, x_bar, y_bar, frame)
             frame, x_body, y_body = mp.process(keypoints_options, count_frames, total_frames, width, height, x_bar, y_bar, frame)
-            
-        
-        if (mp and mp.record) or (sim and sim.record) or (bar and bar.record) :
             out.write(frame)
-        
-        stframe.image(frame,channels = 'BGR',use_column_width=True)
 
     if bar:
         multiple_detection = check_multiple_detection(count_multiple_detection, total_frames)
     cap.release()
     out. release()
-    stframe.empty()
-
+    
     return x_body, y_body, x_bar, y_bar, multiple_detection
 
 

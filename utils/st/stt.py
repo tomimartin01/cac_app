@@ -47,9 +47,8 @@ def video_options(st):
     st.sidebar.markdown('---')
     st.sidebar.markdown('Video options') 
     video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
-    is_writting = st.sidebar.checkbox("Write Video")
 
-    return video_file_buffer, is_writting
+    return video_file_buffer
 
 def mp_detection_parameters(st, body):
 
@@ -63,7 +62,7 @@ def mp_detection_parameters(st, body):
     return keypoints_options, detection_confidence, tracking_confidence, model
 
 def export_options(st):
-    st.markdown('Export options')
+    st.sidebar.markdown('Export options')
     with open(OUTPUT_VIDEO, 'rb') as fvideo:
         st.sidebar.download_button('Video as MP4', fvideo, file_name=OUTPUT_VIDEO)
 
@@ -84,10 +83,9 @@ def hgh_detection_parameters(st):
     return maxRadius, minRadius, param2, param1, minDist
 
 
-def plot_graph(title, axis, keypoints_options, stgraphtitle, stgraphxlabel, stgraphx):
+def plot_graph(axis, keypoints_options, st):
 
-    stgraphtitle.subheader(f"{keypoints_options.replace('_',' ')} keypoint")
-    stgraphxlabel.markdown(title)
+    st.subheader(f"{keypoints_options.replace('_',' ')} keypoint")
     #stgraphx.line_chart({"X": x_graph})
     d = {'Frames': list(range(0,len(axis))), 'Pixels': axis}
     df = pd.DataFrame(data=d)
@@ -98,9 +96,9 @@ def plot_graph(title, axis, keypoints_options, stgraphtitle, stgraphxlabel, stgr
         width=700,
         height=500
     )
-    stgraphx.altair_chart(fig_rec)
+    st.altair_chart(fig_rec, use_container_width=True)
 
-def write_video(stframe):
+def write_video(st):
     with open(OUTPUT_VIDEO, 'rb') as fvideo:
         video_bytes = fvideo.read()
-        stframe.video(video_bytes)
+        st.video(video_bytes)

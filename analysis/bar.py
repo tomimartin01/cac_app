@@ -5,14 +5,13 @@ from utils.misc.misc import check_multiple_detection, validate_video_format
 
 class Bar:
 
-  def __init__(self, video, minDist, param1, param2, minRadius, maxRadius, record):
+  def __init__(self, video, minDist, param1, param2, minRadius, maxRadius):
     self.video = video
     self.minDist = minDist
     self.param1 = param1
     self.param2 = param2
     self.minRadius = minRadius
     self.maxRadius = maxRadius
-    self.record = record
     self.count_multiple_detection = 0
 
 

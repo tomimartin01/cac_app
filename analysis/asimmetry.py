@@ -5,9 +5,8 @@ from const.const import keypoints_pair
 
 class Asimmetry:
 
-    def __init__(self, video, detection_confidence, tracking_confidence, model, record):
+    def __init__(self, video, detection_confidence, tracking_confidence, model):
         self.video = video
-        self.record = record
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_pose = mp.solutions.pose
