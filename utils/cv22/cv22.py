@@ -108,6 +108,8 @@ def analysis( keypoints_options, mp, sim, bar, ph_graphx):
 
     if bar:
         multiple_detection = check_multiple_detection(count_multiple_detection, total_frames)
+    else:
+        multiple_detection = False
     cap.release()
     out. release()
     

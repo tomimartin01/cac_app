@@ -19,33 +19,8 @@ def sidebar_format(st):
         unsafe_allow_html=True,
     )
 
-def create_components(st):
-
-    stframe = st.empty()
-    ststatus = st.empty()
-    stgraphtitle= st.empty()
-    stgraphxlabel= st.empty()
-    stgraphx = st.empty()
-    stgraphylabel= st.empty()
-    stgraphy = st.empty()
-
-
-    return stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy
-
-def hide_components(stframe, ststatus, stgraphtitle, stgraphxlabel, stgraphx, stgraphylabel, stgraphy):
-
-    stframe.empty()
-    ststatus.empty()
-    stgraphtitle.empty()
-    stgraphxlabel.empty()
-    stgraphx.empty()
-    stgraphylabel.empty()
-    stgraphy.empty()
-
 def video_options(st):
 
-    st.sidebar.markdown('---')
-    st.sidebar.markdown('Video options') 
     video_file_buffer = st.sidebar.file_uploader("Upload a video", type=[ "mp4", "mov",'avi','asf', 'm4v' ])
 
     return video_file_buffer
@@ -53,7 +28,7 @@ def video_options(st):
 def mp_detection_parameters(st, body):
 
     st.sidebar.markdown('---')
-    st.sidebar.markdown('Detection Parameters')
+    st.sidebar.subheader('Body Detection Parameters')
     keypoints_options = st.sidebar.selectbox('Graph keypoint position', [key for key, _ in body.items()])
     detection_confidence = st.sidebar.slider('Min Detection Confidence', min_value =0.0,max_value = 1.0,value = 0.5)
     tracking_confidence = st.sidebar.slider('Min Tracking Confidence', min_value = 0.0,max_value = 1.0,value = 0.5)
@@ -62,18 +37,18 @@ def mp_detection_parameters(st, body):
     return keypoints_options, detection_confidence, tracking_confidence, model
 
 def export_options(st):
-    st.sidebar.markdown('Export options')
+    st.subheader('Export options')
     with open(OUTPUT_VIDEO, 'rb') as fvideo:
-        st.sidebar.download_button('Video as MP4', fvideo, file_name=OUTPUT_VIDEO)
+        st.download_button('Video as MP4', fvideo, file_name=OUTPUT_VIDEO)
 
     with open(OUTPUT_CSV) as fcsv:
-        st.sidebar.download_button('Data as CSV', fcsv)
+        st.download_button('Data as CSV', fcsv)
 
 
 def hgh_detection_parameters(st):
 
     st.sidebar.markdown('---')
-    st.sidebar.markdown('Detection Parameters')
+    st.sidebar.subheader('Bar Detection Parameters')
     minDist = st.sidebar.slider('Min Distance', min_value =0,max_value = 1000,value = 20)
     param1 = st.sidebar.slider('Parameter 1', min_value =0,max_value = 1000,value = 50)
     param2 = st.sidebar.slider('Parameter 2', min_value =0,max_value = 1000,value = 48)
@@ -98,7 +73,3 @@ def plot_graph(axis, keypoints_options, st):
     )
     st.altair_chart(fig_rec, use_container_width=True)
 
-def write_video(st):
-    with open(OUTPUT_VIDEO, 'rb') as fvideo:
-        video_bytes = fvideo.read()
-        st.video(video_bytes)
