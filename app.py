@@ -9,9 +9,9 @@ from analysis.body import Body
 from analysis.asimmetry import Asimmetry
 from analysis.bar import Bar
 from utils.misc.misc import mp_validate_detection, hgh_validate_detection
-from utils.csvv.csvv import write_csv
+from utils.csvv.csvv import write_csv_bar,write_csv_body
 from utils.st.stt import sidebar_format, video_options, mp_detection_parameters, export_options, hgh_detection_parameters, plot_graph
-from utils.cv22.cv22 import analysis
+from utils.cv22.cv22 import analysis_mp, analysis_sim, analysis_bar
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -74,7 +74,7 @@ elif app_mode =='Body Analysis':
         tfflie.write(video_file_buffer.read())
         ## create an instance of analyzer and execute frontal analysis
         body = Body(tfflie.name, detection_confidence, tracking_confidence, model)
-        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(keypoints_options, body, None, None, ph_graphx)
+        x_body, y_body = analysis_mp(keypoints_options, body, ph_graphx)
         if (not mp_validate_detection(x_body, y_body)):
             with ph_video.container():
                 st.error('Inaccurate Detection. Please change Detection Parametrs.')
@@ -92,7 +92,7 @@ elif app_mode =='Body Analysis':
                     st.video(video_bytes)
 
             with ph_export.expander("Export options"):
-                write_csv(x_body, y_body, x_bar, y_bar)
+                write_csv_body(x_body, y_body)
                 if exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV):
                     export_options(st)
     else:
@@ -122,7 +122,7 @@ elif app_mode =='Asimmetry Analysis':
         tfflie.write(video_file_buffer.read())
         ## create an instance of analyzer and execute frontal analysis
         sim = Asimmetry(tfflie.name, detection_confidence, tracking_confidence, model)
-        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(keypoints_options, None, sim, None, ph_graphx)
+        x_body, y_body = analysis_sim(keypoints_options, sim, ph_graphx)
         if (not mp_validate_detection(x_body, y_body)):
             with ph_video.container():
                 st.error('Inaccurate Detection. Please change Detection Parametrs.')
@@ -139,7 +139,7 @@ elif app_mode =='Asimmetry Analysis':
                     video_bytes = fvideo.read()
                     st.video(video_bytes)
             with ph_export.expander("Export options"):
-                write_csv(x_body, y_body, x_bar, y_bar)
+                write_csv_body(x_body, y_body)
                 if exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV):
                     export_options(st)
     else:
@@ -158,7 +158,7 @@ elif app_mode =='Bar Analysis':
     st.set_option('deprecation.showfileUploaderEncoding', False)
     sidebar_format(st)
     video_file_buffer = video_options(st)
-    keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints_pair)
+    keypoints_options, detection_confidence, tracking_confidence, model = mp_detection_parameters(st, keypoints)
     maxRadius, minRadius, param2, param1, minDist = hgh_detection_parameters(st)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
     tfflie = tempfile.NamedTemporaryFile(delete=False)
@@ -168,26 +168,26 @@ elif app_mode =='Bar Analysis':
         tfflie.write(video_file_buffer.read())
         body = Body(tfflie.name, detection_confidence, tracking_confidence, model)
         bar = Bar(tfflie.name, minDist, param1, param2, minRadius, maxRadius)
-        x_body, y_body, x_bar, y_bar, multiple_detection = analysis(None, body, None, bar, ph_graphx)
-        if (not mp_validate_detection(x_body, y_body)):
-            with ph_video.container():
-                st.error('Inaccurate Detection. Please change Detection Parametrs.')
-                ph_graphx.empty()
-        else:
-            with ph_graphx.expander('X-axis Graph'):
-                with st.container():
-                    plot_graph(x_body, keypoints_options, st)
-            with ph_graphy.expander('Y-axis Graph'):
-                with st.container():
-                    plot_graph(y_body, keypoints_options, st)
-            with ph_video.expander("Video"):
-                with open(OUTPUT_VIDEO, 'rb') as fvideo:
-                    video_bytes = fvideo.read()
-                    st.video(video_bytes)
-            with ph_export.expander("Export options"):
-                write_csv(x_body, y_body, x_bar, y_bar)
-                if exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV):
-                    export_options(st)
+        x_body, y_body, x_bar, y_bar, multiple_detection = analysis_bar(keypoints_options,body,bar, ph_graphx)
+        # if (not mp_validate_detection(x_body, y_body)):
+        #     with ph_video.container():
+        #         st.error('Inaccurate Detection. Please change Detection Parametrs.')
+        #         ph_graphx.empty()
+        # else:
+        with ph_graphx.expander('X-axis Graph'):
+            with st.container():
+                plot_graph(x_body, keypoints_options, st)
+        with ph_graphy.expander('Y-axis Graph'):
+            with st.container():
+                plot_graph(y_body, keypoints_options, st)
+        with ph_video.expander("Video"):
+            with open(OUTPUT_VIDEO, 'rb') as fvideo:
+                video_bytes = fvideo.read()
+                st.video(video_bytes)
+        with ph_export.expander("Export options"):
+            write_csv_bar(x_body, y_body, x_bar, y_bar)
+            if exists(OUTPUT_VIDEO) and exists(OUTPUT_CSV):
+                export_options(st)
     else:
         with ph_video.container():
             st.warning('No loaded video. \n Please load a video file.')

@@ -20,7 +20,7 @@ class Asimmetry:
         self.asimmetry_y0 = 0
         
 
-    def process(self, keypoints_options, count_frames, total_frames, width, height, x_graph, y_graph, frame):
+    def process(self, keypoints_options, count_frames, total_frames, width, height, frame, x_graph, y_graph):
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.pose.process(frame)
