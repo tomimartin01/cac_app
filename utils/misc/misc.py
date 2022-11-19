@@ -7,14 +7,6 @@ def check_multiple_detection(count, total):
         
     return False
 
-def validate_video_format(total_frames, height, width):
-
-    if total_frames > 1000 or height > 800 or width > 1300:
-      logging.error(f'Error in video format. Frames: {total_frames}, Height: {height}, Width: {width}')
-      return False
-
-    return True
-
 def mp_validate_detection(x, y):
 
     if not x or not y:

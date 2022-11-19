@@ -1,12 +1,12 @@
 import cv2
-from utils.misc.misc import  validate_video_format, check_multiple_detection
+from utils.misc.misc import check_multiple_detection
 from const.const import OUTPUT_VIDEO
 
 import threading
 import queue
 from streamlit.script_run_context import add_script_run_ctx
 
-read_frames_buffer = queue.Queue(50)
+read_frames_buffer = queue.Queue(100)
 process_frames_buffer = queue.Queue(1000)
 
 

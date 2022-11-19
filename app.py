@@ -34,7 +34,7 @@ if app_mode =='Home':
     ph_graphy = st.empty()
     ph_export = st.empty()
     with ph_text.container():
-        st.title('Crossfit Assistan Couch App')
+        st.title('Crossfit Coach Assistant App')
 
         st.markdown ('''CrossFit Coach Assistant (CCA) is a software tool that facilitates the coach's analysis of strength \
                     and gymnastic exercises and the trainee's correction by displaying the results on a User Interface.

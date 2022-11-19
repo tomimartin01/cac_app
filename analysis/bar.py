@@ -1,7 +1,7 @@
 import cv2
 import time
 import numpy as np
-from utils.misc.misc import check_multiple_detection, validate_video_format
+from utils.misc.misc import check_multiple_detection
 
 class Bar:
 

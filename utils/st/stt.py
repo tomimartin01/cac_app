@@ -53,7 +53,7 @@ def hgh_detection_parameters(st):
     param1 = st.sidebar.slider('Parameter 1', min_value =0,max_value = 1000,value = 50)
     param2 = st.sidebar.slider('Parameter 2', min_value =0,max_value = 1000,value = 48)
     minRadius = st.sidebar.slider('Min Radius', min_value =0,max_value = 1000,value = 51)
-    maxRadius = st.sidebar.slider('Max Radius', min_value =0,max_value = 1000,value = 87)
+    maxRadius = st.sidebar.slider('Max Radius', min_value =0,max_value = 1000,value = 200 )
     
     return maxRadius, minRadius, param2, param1, minDist
 
