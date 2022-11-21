@@ -212,8 +212,8 @@ def analysis_sim(keypoints_options, sim, ph_graphx):
     global x_body, y_body, x_bar, y_bar, finished
     cap = cv2.VideoCapture(sim.video)
     finished = False
-    width = 640
-    height = 480
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps_input = int(cap.get(cv2.CAP_PROP_FPS))
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     
